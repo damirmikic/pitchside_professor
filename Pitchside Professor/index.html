@@ -1,0 +1,2500 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pitchside Professor</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --dice-size: 60px;
+            --pico-primary-background: #1e88e5;
+            --pico-primary-inverse: #ffffff;
+            --job-security-high: #4caf50;
+            --job-security-medium: #ffc107;
+            --job-security-low: #f44336;
+        }
+
+        body {
+            padding: 1rem 1rem 4rem 1rem;
+            background-image: url('https://www.transparenttextures.com/patterns/rice-paper-2.png');
+            background-repeat: repeat;
+        }
+
+        /* --- Page & Layout --- */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        main.container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        @media (min-width: 992px) {
+            main.container {
+                grid-template-columns: 3fr 2fr;
+            }
+
+            #game-column-left {
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+        }
+
+        hgroup {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        /* --- Selection Screen --- */
+        #page-selection {
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('cover manager.png') no-repeat center center;
+            background-size: cover;
+            min-height: 100vh;
+        }
+
+        #team-selection-section {
+            max-width: 600px;
+            margin: 2rem auto;
+            text-align: center;
+        }
+
+        #team-selection-section select,
+        #team-selection-section button {
+            margin-bottom: 1rem;
+        }
+
+        /* --- Game UI --- */
+        .player-team-highlight td {
+            background-color: var(--pico-primary-background);
+            font-weight: bold;
+        }
+
+        .champion {
+            background-color: #2e7d32 !important;
+        }
+
+        .control-card {
+            border: 1px solid var(--pico-form-field-border-color);
+            padding: 1.5rem;
+            border-radius: var(--pico-border-radius);
+            text-align: center;
+        }
+
+        .control-card h3 {
+            margin-top: 0;
+        }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--pico-form-field-border-color);
+            margin-bottom: 1rem;
+        }
+
+        .tab-link {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--pico-secondary);
+        }
+
+        .tab-link.active {
+            font-weight: bold;
+            border-bottom: 2px solid var(--pico-primary);
+            color: var(--pico-primary-inverse);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .management-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .management-grid button {
+            width: 100%;
+        }
+
+        /* --- Job Security & Fan Happiness Bars --- */
+        .bar-container {
+            background-color: var(--pico-form-field-background-color);
+            border-radius: 20px;
+            padding: 3px;
+            margin-top: .5rem;
+        }
+
+        .bar {
+            height: 20px;
+            border-radius: 17px;
+            transition: width 0.5s ease-in-out, background-color 0.5s;
+            text-align: center;
+            color: white;
+            font-size: 0.8rem;
+            line-height: 20px;
+        }
+
+        /* --- Stadium View --- */
+        #stadium-view {
+            position: relative;
+            max-width: 500px;
+            margin: 1rem auto;
+        }
+
+        #stadium-view img {
+            width: 100%;
+            border-radius: var(--pico-border-radius);
+            opacity: 0.7;
+        }
+
+        .hotspot {
+            position: absolute;
+            background-color: rgba(30, 136, 229, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            border: 2px solid white;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .hotspot:hover {
+            transform: scale(1.1);
+            background-color: rgba(25, 118, 210, 1);
+        }
+
+        #hotspot-stand {
+            top: 40%;
+            left: 10%;
+        }
+
+        #hotspot-concessions {
+            top: 75%;
+            left: 35%;
+        }
+
+        #hotspot-store {
+            top: 45%;
+            right: 10%;
+        }
+
+        /* --- Animated Popup Styles --- */
+        .animated-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            opacity: 0;
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        .popup-content {
+            background: var(--pico-card-background-color);
+            padding: 2rem;
+            border-radius: var(--pico-border-radius);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transform: scale(0.7) translateY(-50px);
+            animation: popupSlideIn 0.4s ease-out 0.1s forwards;
+        }
+
+        .popup-content h3 {
+            margin-top: 0;
+            color: var(--pico-primary);
+        }
+
+        .popup-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+
+        .popup-buttons button {
+            min-width: 100px;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes popupSlideIn {
+            to {
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .popup-success {
+            border-left: 4px solid var(--job-security-high);
+        }
+
+        .popup-warning {
+            border-left: 4px solid var(--job-security-medium);
+        }
+
+        .popup-error {
+            border-left: 4px solid var(--job-security-low);
+        }
+
+        /* --- Dice Animation --- */
+        .dice-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            margin: 1.5rem 0;
+            perspective: 600px;
+            min-height: 70px;
+        }
+
+        .dice {
+            width: var(--dice-size);
+            height: var(--dice-size);
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1s;
+        }
+
+        .dice.rolling {
+            animation: roll 1s ease-out;
+        }
+
+        .face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: var(--pico-card-background-color);
+            border: 2px solid var(--pico-primary);
+            border-radius: 8px;
+            display: grid;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--pico-primary-inverse);
+            backface-visibility: hidden;
+        }
+
+        .front {
+            transform: translateZ(calc(var(--dice-size) / 2));
+        }
+
+        .back {
+            transform: rotateY(180deg) translateZ(calc(var(--dice-size) / 2));
+        }
+
+        .right {
+            transform: rotateY(90deg) translateZ(calc(var(--dice-size) / 2));
+        }
+
+        .left {
+            transform: rotateY(-90deg) translateZ(calc(var(--dice-size) / 2));
+        }
+
+        .top {
+            transform: rotateX(90deg) translateZ(calc(var(--dice-size) / 2));
+        }
+
+        .bottom {
+            transform: rotateX(-90deg) translateZ(calc(var(--dice-size) / 2));
+        }
+
+        @keyframes roll {
+            100% {
+                transform: rotateX(720deg) rotateY(1080deg);
+            }
+        }
+
+        #result-display {
+            text-align: center;
+            min-height: 48px;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        /* --- Modal & Newspaper --- */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: var(--pico-card-background-color);
+            padding: 1rem;
+            border-radius: 1rem;
+            text-align: center;
+            max-width: 800px;
+            width: 95%;
+        }
+
+        #news-modal .modal-content {
+            background-image: url('draw cover.png');
+            background-size: cover;
+            background-position: center;
+            border: 5px solid #3d2b1f;
+            max-width: 500px;
+        }
+
+        .newspaper-article {
+            text-align: left;
+            padding: 1rem;
+            background-color: rgba(245, 245, 220, 0.9);
+            border-radius: var(--pico-border-radius);
+        }
+
+        .newspaper-article h4,
+        .newspaper-article h5,
+        .newspaper-article p,
+        .newspaper-article strong {
+            color: #000;
+            font-weight: bold;
+        }
+
+        .newspaper-article h4 {
+            margin-top: 0;
+            font-family: 'Times New Roman', Times, serif;
+            border-bottom: 2px solid #333;
+        }
+
+        .newspaper-article h5 {
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            font-family: 'Helvetica', sans-serif;
+        }
+
+        .newspaper-article p {
+            font-family: Georgia, serif;
+            margin-bottom: 0;
+        }
+
+        .newspaper-article hr {
+            border-top: 1px solid #888;
+            margin: 1rem 0;
+        }
+
+        #champions-cup-groups {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1rem;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        #champions-cup-groups table {
+            margin-bottom: 0;
+            font-size: 0.8em;
+        }
+
+        #champions-cup-groups th,
+        #champions-cup-groups td {
+            padding: 0.4rem;
+        }
+
+        #world-leagues-content {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        #job-board-listings {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- PAGE 1: TEAM SELECTION -->
+    <div id="page-selection" class="page active">
+        <section id="team-selection-section">
+            <hgroup>
+                <h1>Pitchside Professor</h1>
+                <p>Build your legacy from the ground up!</p>
+            </hgroup>
+            <label for="league-select">1. Select a League</label>
+            <select id="league-select" required>
+                <option value="" disabled selected>--Please choose a league--</option>
+            </select>
+            <label for="team-select">2. Select Your Team</label>
+            <select id="team-select" required disabled>
+                <option>--Select a league first--</option>
+            </select>
+            <button id="start-game-btn" disabled>Start Season</button>
+        </section>
+    </div>
+
+    <!-- PAGE 2: MAIN GAME -->
+    <div id="page-game" class="page">
+        <main class="container">
+            <div id="game-column-left">
+                <section id="league-view" class="active">
+                    <h2 id="managing-team-header" style="text-align: center;">Managing: [Team Name]</h2>
+                    <div class="dice-container">
+                        <div id="dice1" class="dice">
+                            <div class="face front">0</div>
+                            <div class="face back">3</div>
+                            <div class="face right">1</div>
+                            <div class="face left">4</div>
+                            <div class="face top">2</div>
+                            <div class="face bottom">5</div>
+                        </div>
+                        <div id="dice2" class="dice">
+                            <div class="face front">0</div>
+                            <div class="face back">3</div>
+                            <div class="face right">1</div>
+                            <div class="face left">4</div>
+                            <div class="face top">2</div>
+                            <div class="face bottom">5</div>
+                        </div>
+                    </div>
+                    <h3 id="result-display">Select a tactic and play your first matchday!</h3>
+                    <figure>
+                        <table id="league-table" role="grid">
+                            <thead>
+                                <tr>
+                                    <th>Pos</th>
+                                    <th>Team</th>
+                                    <th>P</th>
+                                    <th>W</th>
+                                    <th>D</th>
+                                    <th>L</th>
+                                    <th>GF</th>
+                                    <th>GA</th>
+                                    <th>GD</th>
+                                    <th>Pts</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body"></tbody>
+                        </table>
+                    </figure>
+                </section>
+
+                <section id="champions-cup-view" style="display: none;">
+                    <h2 style="text-align: center;">🏆 Champions Cup 🏆</h2>
+                    <h3 id="champions-cup-stage-name" style="text-align: center;"></h3>
+                    <div id="champions-cup-content"></div>
+                    <div id="champions-cup-results"></div>
+                </section>
+
+                <section id="management-section" class="control-card">
+                    <div class="tabs">
+                        <button class="tab-link active" onclick="openTab(event, 'manager')">Manager</button>
+                        <button class="tab-link" onclick="openTab(event, 'club')">Club</button>
+                        <button class="tab-link" onclick="openTab(event, 'fans')">Fans & Media</button>
+                        <button class="tab-link" onclick="openTab(event, 'world')">World</button>
+                    </div>
+                    <div id="manager" class="tab-content active">
+                        <div class="management-grid">
+                            <article><strong>Personal Wealth</strong>
+                                <p id="manager-wealth">$0</p>
+                            </article>
+                            <article><strong>Reputation</strong>
+                                <p id="manager-reputation">0</p>
+                            </article>
+                        </div>
+                        <label for="job-security-bar">Job Security</label>
+                        <div id="job-security-bar-container" class="bar-container">
+                            <div id="job-security-bar" class="bar"></div>
+                        </div>
+                        <h5>Manager Lifestyle</h5>
+                        <div id="lifestyle-items" class="management-grid"></div>
+                    </div>
+                    <div id="club" class="tab-content">
+                        <div class="management-grid">
+                            <article><strong>Club Finances</strong>
+                                <p id="club-finances">$0</p>
+                            </article>
+                            <article><strong>Team Strength</strong>
+                                <p id="club-strength">0</p>
+                            </article>
+                            <article><strong>Sponsorship</strong>
+                                <p id="sponsorship-info">No active deals</p>
+                            </article>
+                        </div>
+                        <h5>Club Development</h5>
+                        <div class="management-grid">
+                            <button id="upgrade-training-btn">Upgrade Training (Lvl 1)</button>
+                            <button id="upgrade-academy-btn">Upgrade Academy (Lvl 1)</button>
+                            <button id="seek-sponsorship-btn">Seek Sponsorship</button>
+                        </div>
+                        <hr>
+                        <h5>Stadium Development</h5>
+                        <div id="stadium-view">
+                            <img id="stadium-image" src="small stadium.png" alt="Stadium">
+                            <div id="hotspot-stand" class="hotspot">Expand</div>
+                            <div id="hotspot-concessions" class="hotspot">Food</div>
+                            <div id="hotspot-store" class="hotspot">Store</div>
+                        </div>
+                        <p id="stadium-info">Current Capacity: 0 | Level: Small</p>
+                    </div>
+                    <div id="fans" class="tab-content">
+                        <div class="management-grid">
+                            <article>
+                                <label for="fan-happiness-bar">Fan Happiness</label>
+                                <div id="fan-happiness-bar-container" class="bar-container">
+                                    <div id="fan-happiness-bar" class="bar"></div>
+                                </div>
+                            </article>
+                            <article>
+                                <label for="season-ticket-price-slider">Season Ticket Price</label>
+                                <input type="range" min="50" max="200" value="100" id="season-ticket-price-slider">
+                                <span id="season-ticket-price-value">$100</span>
+                                <small id="season-tickets-info">Season tickets sold: 0/0</small>
+                            </article>
+                            <article>
+                                <label for="matchday-ticket-price-slider">Matchday Ticket Price</label>
+                                <input type="range" min="5" max="50" value="15" id="matchday-ticket-price-slider">
+                                <span id="matchday-ticket-price-value">$15</span>
+                            </article>
+                        </div>
+                        <h5>Fan Engagement & PR</h5>
+                        <div class="management-grid">
+                            <button id="run-radio-promo-btn">Radio Giveaway</button>
+                            <button id="run-tv-promo-btn">TV Promotion</button>
+                            <button id="buy-newspaper-ad-btn">Newspaper Ad</button>
+                        </div>
+                    </div>
+                    <div id="world" class="tab-content">
+                        <div class="tabs">
+                            <button class="tab-link active" onclick="openWorldTab(event, 'current-standings')">Current
+                                Standings</button>
+                            <button class="tab-link" onclick="openWorldTab(event, 'past-champions')">Past
+                                Champions</button>
+                        </div>
+                        <div id="current-standings" class="tab-content active">
+                            <h4>World League Standings</h4>
+                            <p><small>View final standings at the end of the season.</small></p>
+                            <select id="world-league-select"></select>
+                            <div id="world-leagues-content"></div>
+                        </div>
+                        <div id="past-champions" class="tab-content">
+                            <h4>Hall of Fame</h4>
+                            <p><small>Past champions from all leagues.</small></p>
+                            <select id="champions-league-select"></select>
+                            <div id="champions-content"></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <section id="fixtures-section">
+                <div class="control-card">
+                    <h3 id="next-matchday-header">Next Matchday</h3>
+                    <p id="next-match-display">Team A vs Team B</p>
+                    <label for="tactic-select">Your Tactic</label>
+                    <select id="tactic-select">
+                        <option value="balanced" selected>Balanced</option>
+                        <option value="attacking">Attacking</option>
+                        <option value="defensive">Defensive</option>
+                    </select>
+                    <button id="main-action-btn">Play Matchday</button>
+                </div>
+                <h2>Fixtures</h2>
+                <div id="fixtures-list" style="max-height: 60vh; overflow-y: auto;"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- PAGE 3: JOB BOARD -->
+    <div id="page-job-board" class="page">
+        <main class="container">
+            <hgroup>
+                <h1 id="job-board-title">The Job Board</h1>
+                <p id="job-board-subtitle">Your reputation is: <span id="job-board-reputation"></span></p>
+            </hgroup>
+            <div id="job-board-listings"></div>
+        </main>
+    </div>
+
+    <!-- MODALS -->
+    <div id="news-modal" class="modal">
+        <div class="modal-content">
+            <article class="newspaper-article">
+                <h4 id="news-title"></h4><strong>Matchday <span id="news-round-number"></span> Report</strong>
+                <h5 id="news-player-headline"></h5>
+                <p id="news-player-article"></p>
+                <hr>
+                <h5 id="news-motd-headline"></h5>
+                <p id="news-motd-article"></p>
+            </article><button id="news-close-btn" style="margin-top: 1rem;">Continue</button>
+        </div>
+    </div>
+    <div id="end-season-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="champion-announcement"></h2>
+            <h3 id="champion-team-name"></h3>
+            <p id="season-summary"></p>
+            <div id="end-season-buttons"></div>
+        </div>
+    </div>
+    <div id="upgrade-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="upgrade-title"></h3>
+            <p id="upgrade-info"></p>
+            <p id="upgrade-cost"></p><button id="upgrade-confirm-btn">Upgrade</button><button id="upgrade-cancel-btn"
+                class="secondary">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // --- TABS ---
+        function openTab(evt, tabName) {
+            let i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) tabcontent[i].classList.remove("active");
+            tablinks = document.getElementsByClassName("tab-link");
+            for (i = 0; i < tablinks.length; i++) tablinks[i].classList.remove("active");
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+
+        function openWorldTab(evt, tabName) {
+            const worldTabContent = document.querySelectorAll('#world .tab-content');
+            const worldTabLinks = document.querySelectorAll('#world .tab-link');
+
+            worldTabContent.forEach(content => content.classList.remove("active"));
+            worldTabLinks.forEach(link => link.classList.remove("active"));
+
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+
+            if (tabName === 'past-champions') {
+                populateChampionsView();
+            }
+        }
+
+        // --- ANIMATED POPUP FUNCTIONS ---
+        function showAnimatedPopup(title, message, type = 'info', buttons = null) {
+            const popup = document.createElement('div');
+            popup.className = 'animated-popup';
+
+            let typeClass = '';
+            if (type === 'success') typeClass = 'popup-success';
+            else if (type === 'warning') typeClass = 'popup-warning';
+            else if (type === 'error') typeClass = 'popup-error';
+
+            const defaultButtons = buttons || [{ text: 'OK', action: () => closePopup(popup) }];
+
+            const buttonHTML = defaultButtons.map(btn =>
+                `<button onclick="${btn.action.toString().replace('function', 'function temp')}; temp.call(this);">${btn.text}</button>`
+            ).join('');
+
+            popup.innerHTML = `
+                <div class="popup-content ${typeClass}">
+                    <h3>${title}</h3>
+                    <p>${message}</p>
+                    <div class="popup-buttons">
+                        ${buttonHTML}
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(popup);
+
+            // Store button actions on the popup element for access
+            defaultButtons.forEach((btn, index) => {
+                const buttonElement = popup.querySelectorAll('.popup-buttons button')[index];
+                buttonElement.onclick = () => {
+                    btn.action();
+                    closePopup(popup);
+                };
+            });
+
+            return popup;
+        }
+
+        function closePopup(popup) {
+            popup.style.animation = 'fadeIn 0.2s ease-out reverse';
+            setTimeout(() => {
+                if (popup.parentNode) {
+                    document.body.removeChild(popup);
+                }
+            }, 200);
+        }
+
+        function showSuccessPopup(title, message) {
+            return showAnimatedPopup(title, message, 'success');
+        }
+
+        function showWarningPopup(title, message) {
+            return showAnimatedPopup(title, message, 'warning');
+        }
+
+        function showErrorPopup(title, message) {
+            return showAnimatedPopup(title, message, 'error');
+        }
+
+        function showConfirmPopup(title, message, onConfirm, onCancel = null) {
+            const buttons = [
+                { text: 'Yes', action: onConfirm },
+                { text: 'No', action: onCancel || (() => { }) }
+            ];
+            return showAnimatedPopup(title, message, 'warning', buttons);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const leagues = {
+                "Celestial Super League": [{ name: "Quantum Rovers", baseStrength: 10 }, { name: "Nebula Nomads", baseStrength: 9 }, { name: "Orion Olympians", baseStrength: 9 }, { name: "Galaxy Gladiators", baseStrength: 8 }, { name: "Solar Flare FC", baseStrength: 7 }, { name: "Void Wanderers", baseStrength: 6 }, { name: "Pulsar Pioneers", baseStrength: 5 }, { name: "Comet Captains", baseStrength: 4 }],
+                "Clockwork Championship": [{ name: "Ironclad Internazionale", baseStrength: 10 }, { name: "Cogsworth City", baseStrength: 9 }, { name: "Dynamo Droids", baseStrength: 8 }, { name: "Steam-powered Strikers", baseStrength: 8 }, { name: "Automaton Athletic", baseStrength: 7 }, { name: "Geargrind Guild", baseStrength: 6 }, { name: "Piston Palace", baseStrength: 5 }, { name: "Rivet Rovers", baseStrength: 4 }],
+                "Gilded Gauntlet": [{ name: "Eldorado Empire", baseStrength: 10 }, { name: "Argentum Assembly", baseStrength: 9 }, { name: "Pyrite Pirates", baseStrength: 8 }, { name: "Sovereign Strikers", baseStrength: 7 }, { name: "Bullion Bulls", baseStrength: 7 }, { name: "Treasury Trojans", baseStrength: 6 }, { name: "Minted Monarchs", baseStrength: 5 }, { name: "Crown Jewels FC", baseStrength: 4 }],
+                "Jade Empire Division": [{ name: "Dragonstone Dynamos", baseStrength: 10 }, { name: "Emerald Pagodas", baseStrength: 9 }, { name: "Silent Shoguns", baseStrength: 8 }, { name: "Crimson Cranes", baseStrength: 7 }, { name: "Golden Lotus", baseStrength: 7 }, { name: "Jade Serpents", baseStrength: 6 }, { name: "Terracotta Titans", baseStrength: 5 }, { name: "Silk Road Wanderers", baseStrength: 4 }],
+                "Voodoo Premier League": [{ name: "Bayou Phantoms", baseStrength: 10 }, { name: "Spirit Strikers", baseStrength: 9 }, { name: "Juju Juggernauts", baseStrength: 8 }, { name: "Gris-Gris Guardians", baseStrength: 7 }, { name: "Shadow Shakers", baseStrength: 7 }, { name: "Tiki Terrors", baseStrength: 6 }, { name: "Ritual Rangers", baseStrength: 5 }, { name: "Loa Legends", baseStrength: 4 }],
+                "Valhalla First Division": [{ name: "Asgard Aces", baseStrength: 10 }, { name: "Viking Vanguards", baseStrength: 9 }, { name: "Berserker Bears", baseStrength: 8 }, { name: "Einherjar Elite", baseStrength: 8 }, { name: "Ragnarok Rovers", baseStrength: 7 }, { name: "Jotunheim Giants", baseStrength: 6 }, { name: "Fjord Fighters", baseStrength: 5 }, { name: "Longship Legends", baseStrength: 4 }],
+                "Outback Premiership": [{ name: "Didgeridoo Dreamers", baseStrength: 10 }, { name: "Uluru United", baseStrength: 9 }, { name: "Boomerang Bandits", baseStrength: 8 }, { name: "Dingo Dynamos", baseStrength: 7 }, { name: "Coral Sea Captains", baseStrength: 7 }, { name: "Billabong FC", baseStrength: 6 }, { name: "Eucalyptus Elite", baseStrength: 5 }, { name: "Outback Olympians", baseStrength: 4 }],
+                "Samba Superliga": [{ name: "Copacabana Kings", baseStrength: 10 }, { name: "Amazon Avengers", baseStrength: 9 }, { name: "Carnival Champions", baseStrength: 8 }, { name: "Favela Fighters", baseStrength: 8 }, { name: "Capoeira Kickers", baseStrength: 7 }, { name: "Piranha Piratas", baseStrength: 6 }, { name: "Jungle Jaguars", baseStrength: 5 }, { name: "Maracana Magicians", baseStrength: 4 }]
+            };
+            const newspaperNames = ['The Daily Dice', 'The Sporting Chronicle', 'The Final Whistle', 'The League Ledger', 'Matchday Gazette'];
+            const newspaperImages = {
+                win: ['win cover.png'],
+                loss: ['lose cover.png'],
+                draw: ['draw cover.png']
+            };
+            const newspaperTemplates = {
+                win: [
+                    { headline: "{playerName} March On!", article: "A solid performance from {playerName} saw them comfortably dispatch {opponent} with a {homeScore}-{awayScore} victory. The manager expressed satisfaction, stating, 'The team executed the plan perfectly today.' A crowd of {attendance} went home happy." },
+                    { headline: "VICTORY for {playerName}!", article: "{playerName} secured a crucial three points today, overcoming {opponent} {homeScore}-{awayScore}. It was a hard-fought battle in front of {attendance} fans, but they emerged as deserving winners." }
+                ],
+                dominantWin: [
+                    { headline: "{playerName} Rampant in Thrashing!", article: "It was a day to remember for the {attendance} {playerName} fans in attendance as their team demolished {opponent} in a stunning {homeScore}-{awayScore} display of attacking football. 'We were simply on another level,' beamed the manager." },
+                    { headline: "Masterclass! {playerName} Crush {opponent}", article: "An absolutely breathtaking performance saw {playerName} dismantle {opponent} {homeScore}-{awayScore}. From start to finish, the result was never in doubt for the {attendance} spectators." }
+                ],
+                loss: [
+                    { headline: "Disappointment for {playerName}", article: "{playerName} slumped to a {homeScore}-{awayScore} defeat against {opponent} today. The {attendance} home fans were left disappointed. The manager was philosophical: 'It wasn't our day. We have to learn from this and go again.'" },
+                    { headline: "Tough Pill to Swallow for {playerName}", article: "Heartbreak for {playerName} as they fell {homeScore}-{awayScore} to {opponent}. Despite a spirited effort from the players and the {attendance} fans, they couldn't find a way back into the match." }
+                ],
+                heavyLoss: [
+                    { headline: "{playerName} Humiliated in Shock Defeat", article: "Questions will be asked after {playerName} were hammered {homeScore}-{awayScore} by a rampant {opponent} in front of a stunned crowd of {attendance}. 'Unacceptable,' was the manager's terse post-match comment." },
+                    { headline: "Collapse! {playerName} Thumped by {opponent}", article: "A defensive horror show saw {playerName} capitulate to a {homeScore}-{awayScore} loss against {opponent}. The {attendance} fans who turned up will be demanding a response." }
+                ],
+                draw: [
+                    { headline: "Spoils Shared in Tense Stalemate", article: "Neither side could find a breakthrough as {playerName} and {opponent} played out a {homeScore}-{awayScore} draw. 'A fair result in the end,' commented the home manager to the {attendance} fans." },
+                    { headline: "Honours Even Between Rivals", article: "{playerName} and {opponent} couldn't be separated, ending the day with a {homeScore}-{awayScore} draw in front of {attendance} spectators. Both teams had chances, but a point apiece seemed the right outcome." }
+                ],
+                boringDraw: [
+                    { headline: "Forwards Fluff Lines in Goalless Snooze-fest", article: "The {attendance} fans who paid for tickets will be hoping for more excitement next week after {playerName} and {opponent} played out a drab 0-0 draw. It was a match short on quality and clear-cut chances." }
+                ],
+                motd: [
+                    { headline: "Thriller at the Top!", article: "In the day's most exciting clash, {homeTeam} edged out {awayTeam} in a nail-biting {homeScore}-{awayScore} encounter." },
+                    { headline: "Upset of the Season!", article: "The form book was torn to shreds as underdogs {winner} stunned {loser} with a famous {winScore}-{loseScore} victory." },
+                    { headline: "Goal Fest!", article: "Fans were treated to a spectacle as {homeTeam} and {awayTeam} shared {totalGoals} goals in a breathless {homeScore}-{awayScore} classic." }
+                ]
+            };
+
+            let worldLeagues = {};
+            let pastChampions = {}; // Store past champions for each league
+            let playerTeam = null, playerLeagueName = '';
+            let playerManager = { reputation: 20, jobSecurity: 90, salary: 0, personalWealth: 0, lifestyle: {}, fanHappiness: 75, pressConferenceEffect: null };
+            let currentRound = 1;
+            let gameState = 'league'; // 'league', 'champions_cup', 'end_of_season', 'job_board'
+            let championsCup = { active: false, stage: '', round: 0, groups: [], fixtures: [] };
+            const teamsPerLeague = 8, roundsPerSeason = (teamsPerLeague - 1) * 2;
+
+            const pages = { selection: document.getElementById('page-selection'), game: document.getElementById('page-game'), jobBoard: document.getElementById('page-job-board') };
+            const leagueSelect = document.getElementById('league-select'), teamSelect = document.getElementById('team-select'), startGameBtn = document.getElementById('start-game-btn');
+
+            function initializeSelection() { Object.keys(leagues).forEach(name => leagueSelect.add(new Option(name, name))); }
+            leagueSelect.addEventListener('change', () => {
+                const selectedLeague = leagues[leagueSelect.value];
+                teamSelect.innerHTML = '<option value="" disabled selected>--Choose your team--</option>';
+                selectedLeague.forEach(team => teamSelect.add(new Option(team.name, team.name)));
+                teamSelect.disabled = false;
+            });
+            teamSelect.addEventListener('change', () => { startGameBtn.disabled = !teamSelect.value; });
+            startGameBtn.addEventListener('click', () => setupGame(leagueSelect.value, teamSelect.value));
+
+            function setupGame(leagueName, teamName, existingPlayerData = null) {
+                playerLeagueName = leagueName;
+                if (existingPlayerData) {
+                    worldLeagues = existingPlayerData.worldLeagues;
+                    playerTeam = worldLeagues[playerLeagueName].teams.find(t => t.name === teamName);
+                    Object.values(worldLeagues).forEach(league => {
+                        league.teams.forEach(t => { t.p = 0; t.w = 0; t.d = 0; t.l = 0; t.gf = 0; t.ga = 0; t.gd = 0; t.pts = 0; t.form = 0; });
+                        league.fixtures = generateFixturesForLeague(league.teams);
+                    });
+                } else { // New Game
+                    playerManager = { reputation: 20, jobSecurity: 90, salary: 0, personalWealth: 0, lifestyle: {}, fanHappiness: 75, pressConferenceEffect: null };
+                    Object.keys(leagues).forEach(lName => {
+                        const teamsData = JSON.parse(JSON.stringify(leagues[lName]));
+                        teamsData.forEach(t => {
+                            const randomCapacity = Math.floor(Math.random() * 1500) + 500; // 500-2000 capacity
+                            const seasonTicketsSold = Math.floor(randomCapacity * (0.3 + Math.random() * 0.4)); // 30-70% of capacity
+                            Object.assign(t, {
+                                p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0,
+                                money: 5000, form: 0,
+                                trainingLevel: 1, academyLevel: 1, standLevel: 1, concessionsLevel: 1, storeLevel: 1,
+                                seasonTicketPrice: 100, matchdayTicketPrice: 15,
+                                stadiumCapacity: randomCapacity,
+                                seasonTicketsSold: seasonTicketsSold,
+                                seasonTicketsGenerated: false
+                            });
+                        });
+                        worldLeagues[lName] = { teams: teamsData, fixtures: generateFixturesForLeague(teamsData) };
+                    });
+                    playerTeam = worldLeagues[playerLeagueName].teams.find(t => t.name === teamName);
+                }
+
+                playerManager.salary = playerTeam.baseStrength * 2000;
+                currentRound = 1;
+
+                // Generate season ticket sales at start of season
+                generateSeasonTicketSales();
+
+                updateGameState('league');
+            }
+
+            function generateSeasonTicketSales() {
+                if (!playerTeam.seasonTicketsGenerated) {
+                    // Calculate season ticket sales based on fan happiness, price, and team performance
+                    const baseInterest = playerTeam.stadiumCapacity * 0.4; // 40% base interest
+                    const happinessModifier = 0.5 + (playerManager.fanHappiness / 100); // 0.5 to 1.5
+                    const priceModifier = Math.max(0.2, 2 - (playerTeam.seasonTicketPrice / 100)); // Price resistance
+                    const reputationModifier = 0.8 + (playerManager.reputation / 100); // Team reputation effect
+
+                    const potentialSales = Math.floor(baseInterest * happinessModifier * priceModifier * reputationModifier);
+                    playerTeam.seasonTicketsSold = Math.min(playerTeam.stadiumCapacity, potentialSales);
+
+                    // Generate season ticket income
+                    const seasonTicketIncome = playerTeam.seasonTicketsSold * playerTeam.seasonTicketPrice;
+                    playerTeam.money += seasonTicketIncome;
+                    playerTeam.seasonTicketsGenerated = true;
+
+                    console.log(`Season tickets sold: ${playerTeam.seasonTicketsSold} for $${seasonTicketIncome.toLocaleString()}`);
+                }
+            }
+
+            const generateFixturesForLeague = (teams) => {
+                const fixtures = [];
+                const teamNames = teams.map(t => t.name);
+                for (let round = 0; round < (teams.length - 1) * 2; round++) {
+                    const roundFixtures = [];
+                    for (let i = 0; i < teams.length / 2; i++) {
+                        const homeName = teamNames[i], awayName = teamNames[teams.length - 1 - i];
+                        const homeTeam = teams.find(t => t.name === homeName), awayTeam = teams.find(t => t.name === awayName);
+                        if (round < teams.length - 1) roundFixtures.push({ home: homeTeam, away: awayTeam, played: false });
+                        else roundFixtures.push({ home: awayTeam, away: homeTeam, played: false });
+                    }
+                    fixtures.push(roundFixtures);
+                    teamNames.splice(1, 0, teamNames.pop());
+                }
+                return fixtures;
+            };
+
+            function updateGameState(newState) {
+                gameState = newState;
+                const leagueView = document.getElementById('league-view');
+                const cupView = document.getElementById('champions-cup-view');
+                const mainActionButton = document.getElementById('main-action-btn');
+
+                pages.selection.classList.remove('active');
+                pages.game.classList.remove('active');
+                pages.jobBoard.classList.remove('active');
+
+                if (gameState === 'league' || gameState === 'champions_cup') {
+                    pages.game.classList.add('active');
+                    document.getElementById('managing-team-header').textContent = `Managing: ${playerTeam.name}`;
+                    const isLeague = gameState === 'league';
+                    leagueView.style.display = isLeague ? 'block' : 'none';
+                    cupView.style.display = isLeague ? 'none' : 'block';
+                    mainActionButton.style.display = 'block';
+                    mainActionButton.onclick = isLeague ? simulateRound : playChampionsCupRound;
+
+                    if (isLeague) {
+                        mainActionButton.textContent = 'Play Matchday';
+                        renderTable();
+                        renderFixtures();
+                        displayNextMatchInfo();
+                    } else {
+                        mainActionButton.textContent = `Play Cup Round`;
+                        displayChampionsCupUI();
+                    }
+                    updateManagementUI();
+                } else if (gameState === 'job_board') {
+                    showJobBoard("The Job Board");
+                }
+            }
+
+            // --- UI RENDERING ---
+            const renderTable = () => {
+                const playerLeagueTeams = worldLeagues[playerLeagueName].teams;
+                const sortedTeams = [...playerLeagueTeams].sort((a, b) => (b.pts - a.pts) || (b.gd - a.gd) || (b.gf - a.gf));
+                const tableBody = document.getElementById('table-body'); tableBody.innerHTML = '';
+                sortedTeams.forEach((team, index) => {
+                    const row = document.createElement('tr');
+                    if (team.name === playerTeam.name) row.classList.add('player-team-highlight');
+                    if (currentRound > roundsPerSeason && index === 0) row.classList.add('champion');
+                    row.innerHTML = `<td>${index + 1}</td><td>${team.name}</td><td>${team.p}</td><td>${team.w}</td><td>${team.d}</td><td>${team.l}</td><td>${team.gf}</td><td>${team.ga}</td><td>${team.gd}</td><td><strong>${team.pts}</strong></td>`;
+                    tableBody.appendChild(row);
+                });
+            };
+            const renderFixtures = () => {
+                const fixturesList = document.getElementById('fixtures-list'); fixturesList.innerHTML = '';
+                const playerLeagueFixtures = worldLeagues[playerLeagueName].fixtures;
+                playerLeagueFixtures.forEach((roundFixtures, roundIndex) => {
+                    const article = document.createElement('article'); article.innerHTML = `<h4>Matchday ${roundIndex + 1}</h4>`;
+                    roundFixtures.forEach(match => {
+                        const p = document.createElement('p'); let text = `${match.home.name} vs ${match.away.name}`;
+                        if (match.played) text += ` <small><strong>(${match.homeScore} - ${match.awayScore})</strong></small>`;
+                        p.innerHTML = text; if (match.played) p.style.opacity = '0.6';
+                        article.appendChild(p);
+                    });
+                    fixturesList.appendChild(article);
+                });
+            };
+            const displayNextMatchInfo = () => {
+                if (currentRound > roundsPerSeason) return;
+                const playerMatch = worldLeagues[playerLeagueName].fixtures[currentRound - 1].find(m => m.home.name === playerTeam.name || m.away.name === playerTeam.name);
+                if (playerMatch) {
+                    const opponent = playerMatch.home.name === playerTeam.name ? playerMatch.away : playerMatch.home;
+                    const isHome = playerMatch.home.name === playerTeam.name;
+                    document.getElementById('next-match-display').innerHTML = `
+                        <strong>${playerMatch.home.name} vs ${playerMatch.away.name}</strong><br>
+                        <small>You are playing ${isHome ? 'at home' : 'away'} vs ${opponent.name}</small><br>
+                        <small>Opponent Strength: ${opponent.baseStrength} | Your Strength: ${playerTeam.baseStrength}</small>
+                    `;
+                } else {
+                    document.getElementById('next-match-display').textContent = "No match this round";
+                }
+            };
+
+            const displayNextChampionsCupMatchInfo = () => {
+                const nextMatch = getNextChampionsCupMatch();
+                if (nextMatch) {
+                    const opponent = nextMatch.home.name === playerTeam.name ? nextMatch.away : nextMatch.home;
+                    const isHome = nextMatch.home.name === playerTeam.name;
+                    const stageText = championsCup.stage === 'groups' ? `Group Stage - Matchday ${championsCup.round}` :
+                        ['Round of 16', 'Quarter-Final', 'Semi-Final', 'Final'][championsCup.round - 1];
+                    document.getElementById('next-match-display').innerHTML = `
+                        <strong>${nextMatch.home.name} vs ${nextMatch.away.name}</strong><br>
+                        <small>${stageText}</small><br>
+                        <small>You are playing ${isHome ? 'at home' : 'away'} vs ${opponent.name}</small><br>
+                        <small>Opponent Strength: ${opponent.baseStrength} | Your Strength: ${playerTeam.baseStrength}</small>
+                    `;
+                } else {
+                    document.getElementById('next-match-display').textContent = "No upcoming match";
+                }
+            };
+
+            const updateManagementUI = () => {
+                document.getElementById('club-finances').textContent = `$${playerTeam.money.toLocaleString()}`;
+                const effectiveStrength = playerTeam.baseStrength + playerTeam.form;
+                document.getElementById('club-strength').textContent = `${effectiveStrength.toFixed(1)} (Base: ${playerTeam.baseStrength.toFixed(1)}, Form: ${playerTeam.form > 0 ? '+' : ''}${playerTeam.form})`;
+                document.getElementById('manager-reputation').textContent = playerManager.reputation;
+                document.getElementById('manager-wealth').textContent = `$${playerManager.personalWealth.toLocaleString()}`;
+
+                const securityBar = document.getElementById('job-security-bar');
+                securityBar.style.width = `${playerManager.jobSecurity}%`;
+                securityBar.textContent = `${playerManager.jobSecurity}%`;
+                if (playerManager.jobSecurity > 65) securityBar.style.backgroundColor = 'var(--job-security-high)';
+                else if (playerManager.jobSecurity > 35) securityBar.style.backgroundColor = 'var(--job-security-medium)';
+                else securityBar.style.backgroundColor = 'var(--job-security-low)';
+
+                const fanBar = document.getElementById('fan-happiness-bar');
+                fanBar.style.width = `${playerManager.fanHappiness}%`;
+                fanBar.textContent = `${playerManager.fanHappiness}%`;
+                if (playerManager.fanHappiness > 65) fanBar.style.backgroundColor = 'var(--job-security-high)';
+                else if (playerManager.fanHappiness > 35) fanBar.style.backgroundColor = 'var(--job-security-medium)';
+                else fanBar.style.backgroundColor = 'var(--job-security-low)';
+
+
+                const trainingCost = 5000 * playerTeam.trainingLevel * playerTeam.trainingLevel;
+                const academyCost = 5000 * playerTeam.academyLevel * playerTeam.academyLevel;
+                const trainBtn = document.getElementById('upgrade-training-btn'), academyBtn = document.getElementById('upgrade-academy-btn');
+                trainBtn.textContent = `Upgrade Training (Lvl ${playerTeam.trainingLevel})`; trainBtn.dataset.tooltip = `Cost: $${trainingCost.toLocaleString()}`;
+                academyBtn.textContent = `Upgrade Academy (Lvl ${playerTeam.academyLevel})`; academyBtn.dataset.tooltip = `Cost: $${academyCost.toLocaleString()}`;
+
+                // Update sponsorship information
+                const sponsorshipInfo = document.getElementById('sponsorship-info');
+                const seekSponsorshipBtn = document.getElementById('seek-sponsorship-btn');
+                if (playerTeam.sponsorship && playerTeam.sponsorship.seasonsRemaining > 0) {
+                    sponsorshipInfo.textContent = `${playerTeam.sponsorship.sponsor} (${playerTeam.sponsorship.seasonsRemaining} seasons left)`;
+                    seekSponsorshipBtn.textContent = 'Current Deal Active';
+                    seekSponsorshipBtn.disabled = true;
+                } else {
+                    sponsorshipInfo.textContent = 'No active deals';
+                    seekSponsorshipBtn.textContent = 'Seek Sponsorship';
+                    seekSponsorshipBtn.disabled = false;
+                }
+
+                // Update stadium information
+                const stadiumInfo = document.getElementById('stadium-info');
+                const stadiumImage = document.getElementById('stadium-image');
+                if (stadiumInfo && stadiumImage) {
+                    let stadiumLevel = 'Small';
+                    let imageName = 'small stadium.png';
+                    if (playerTeam.stadiumCapacity >= 10000) {
+                        stadiumLevel = 'World Class';
+                        imageName = 'world stadium.png';
+                    } else if (playerTeam.stadiumCapacity >= 5000) {
+                        stadiumLevel = 'Medium';
+                        imageName = 'mid stadium.png';
+                    }
+                    stadiumInfo.textContent = `Current Capacity: ${playerTeam.stadiumCapacity.toLocaleString()} | Level: ${stadiumLevel}`;
+                    stadiumImage.src = imageName;
+                }
+
+                // Update season ticket information
+                const seasonTicketsInfo = document.getElementById('season-tickets-info');
+                if (seasonTicketsInfo) {
+                    seasonTicketsInfo.textContent = `Season tickets sold: ${playerTeam.seasonTicketsSold.toLocaleString()}/${playerTeam.stadiumCapacity.toLocaleString()}`;
+                }
+
+                // Update slider values
+                const seasonTicketSlider = document.getElementById('season-ticket-price-slider');
+                const seasonTicketValue = document.getElementById('season-ticket-price-value');
+                const matchdayTicketSlider = document.getElementById('matchday-ticket-price-slider');
+                const matchdayTicketValue = document.getElementById('matchday-ticket-price-value');
+
+                if (seasonTicketSlider && playerTeam.seasonTicketPrice) {
+                    seasonTicketSlider.value = playerTeam.seasonTicketPrice;
+                    seasonTicketValue.textContent = `$${playerTeam.seasonTicketPrice}`;
+                }
+                if (matchdayTicketSlider && playerTeam.matchdayTicketPrice) {
+                    matchdayTicketSlider.value = playerTeam.matchdayTicketPrice;
+                    matchdayTicketValue.textContent = `$${playerTeam.matchdayTicketPrice}`;
+                }
+
+                renderLifestyleItems();
+            };
+
+            const lifestyleItems = [
+                { id: 'suit', name: 'Sharp Suit', cost: 5000 },
+                { id: 'watch', name: 'Luxury Watch', cost: 15000 },
+                { id: 'car', name: 'Sports Car', cost: 50000 },
+                { id: 'apartment', name: 'Downtown Apartment', cost: 200000 }
+            ];
+
+            function renderLifestyleItems() {
+                const container = document.getElementById('lifestyle-items');
+                container.innerHTML = '';
+                lifestyleItems.forEach(item => {
+                    const btn = document.createElement('button');
+                    btn.id = `buy-${item.id}`;
+                    btn.dataset.cost = item.cost;
+                    btn.dataset.id = item.id;
+                    if (playerManager.lifestyle[item.id]) {
+                        btn.textContent = `${item.name} (Owned)`;
+                        btn.disabled = true;
+                    } else {
+                        btn.textContent = `Buy ${item.name}`;
+                        btn.dataset.tooltip = `Cost: $${item.cost.toLocaleString()}`;
+                        btn.disabled = playerManager.personalWealth < item.cost;
+                    }
+                    container.appendChild(btn);
+                });
+            }
+
+            document.getElementById('lifestyle-items').addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') {
+                    const cost = parseInt(e.target.dataset.cost);
+                    const id = e.target.dataset.id;
+                    if (playerManager.personalWealth >= cost) {
+                        playerManager.personalWealth -= cost;
+                        playerManager.lifestyle[id] = true;
+                        updateManagementUI();
+                    }
+                }
+            });
+
+            const rollDice = () => {
+                return Math.floor(Math.random() * 6); // Returns 0-5
+            };
+
+            function simulatePlayerMatch(match, dice1, dice2, tactic) {
+                const { home, away } = match;
+                let homeTacticMod = 0, awayTacticMod = 0;
+
+                // Apply tactic modifiers
+                if (tactic === 'attacking') {
+                    home.name === playerTeam.name ? homeTacticMod = 1 : awayTacticMod = 1;
+                } else if (tactic === 'defensive') {
+                    home.name === playerTeam.name ? homeTacticMod = -1 : awayTacticMod = -1;
+                }
+
+                // Calculate strength difference
+                const effectiveHomeStrength = home.baseStrength + (home.form || 0);
+                const effectiveAwayStrength = away.baseStrength + (away.form || 0);
+                const strengthDiff = effectiveHomeStrength - effectiveAwayStrength;
+                const strengthMod = Math.round(strengthDiff / 3);
+
+                // Calculate scores using provided dice rolls
+                let homeScore = dice1 + homeTacticMod + strengthMod;
+                let awayScore = dice2 + awayTacticMod;
+                homeScore = Math.max(0, homeScore);
+                awayScore = Math.max(0, awayScore);
+
+                // Calculate attendance for home matches
+                let attendance = Math.floor(Math.random() * 1000) + 500; // Default attendance for away teams
+                if (home.name === playerTeam.name) {
+                    // Season ticket holders always attend
+                    const guaranteedAttendance = playerTeam.seasonTicketsSold;
+                    // Additional matchday ticket buyers based on various factors
+                    const availableCapacity = home.stadiumCapacity - guaranteedAttendance;
+                    const baseInterest = availableCapacity * 0.4; // 40% base interest in remaining seats
+                    const formModifier = 1 + (home.form * 0.1);
+                    const happinessModifier = 0.3 + (playerManager.fanHappiness / 100);
+                    const priceModifier = Math.max(0.2, 1.5 - (playerTeam.matchdayTicketPrice / 25)); // Price resistance
+
+                    const additionalAttendance = Math.floor(baseInterest * formModifier * happinessModifier * priceModifier);
+                    attendance = Math.min(home.stadiumCapacity, guaranteedAttendance + additionalAttendance);
+                }
+
+                const resultText = `${home.name} ${homeScore} - ${awayScore} ${away.name}`;
+                return {
+                    text: resultText,
+                    homeScore,
+                    awayScore,
+                    attendance,
+                    isPlayerMatch: true,
+                    match: match
+                };
+            }
+
+            function simulateRound() {
+                if (currentRound > roundsPerSeason) return;
+                let playerMatchResultText = '',
+                    matchOfTheDay = { text: '', importance: 0, match: null, homeScore: 0, awayScore: 0 },
+                    playerMatchOutcome = 'draw',
+                    playerMatchDetails = null;
+
+                Object.values(worldLeagues).forEach(league => {
+                    const roundFixtures = league.fixtures[currentRound - 1];
+                    if (!roundFixtures) return;
+                    roundFixtures.forEach(match => {
+                        const result = simulateMatch(match);
+                        if (result.isPlayerMatch) {
+                            playerMatchResultText = result.text;
+                            const playerIsHome = match.home.name === playerTeam.name;
+                            if (result.homeScore === result.awayScore) playerMatchOutcome = 'draw';
+                            else if ((playerIsHome && result.homeScore > result.awayScore) || (!playerIsHome && result.awayScore > result.homeScore)) playerMatchOutcome = 'win';
+                            else playerMatchOutcome = 'loss';
+                            playerMatchDetails = { match: match, homeScore: result.homeScore, awayScore: result.awayScore, attendance: result.attendance };
+                        } else if (result.importance > matchOfTheDay.importance) {
+                            matchOfTheDay = { text: result.text, importance: result.importance, match: match, homeScore: result.homeScore, awayScore: result.awayScore };
+                        }
+                    });
+                });
+
+                if (!playerMatchDetails) playerMatchDetails = matchOfTheDay;
+
+                const articleContent = generateNewspaperArticle(playerMatchDetails, playerMatchOutcome, matchOfTheDay);
+                document.getElementById('news-title').textContent = newspaperNames[Math.floor(Math.random() * newspaperNames.length)];
+                document.getElementById('news-round-number').textContent = currentRound;
+                document.getElementById('news-player-headline').textContent = articleContent.playerHeadline;
+                document.getElementById('news-player-article').textContent = articleContent.playerArticle;
+                document.getElementById('news-motd-headline').textContent = articleContent.motdHeadline;
+                document.getElementById('news-motd-article').textContent = articleContent.motdArticle;
+
+                animateAndRender(playerMatchResultText, playerMatchOutcome);
+            }
+
+            function simulateMatch(match, isCup = false) {
+                const { home, away } = match; let homeTacticMod = 0, awayTacticMod = 0; let isPlayerMatch = false;
+                let attendance = 0;
+
+                if (home.name === playerTeam.name || away.name === playerTeam.name) {
+                    isPlayerMatch = true; const tactic = document.getElementById('tactic-select').value;
+                    if (tactic === 'attacking') home.name === playerTeam.name ? homeTacticMod = 1 : awayTacticMod = 1;
+                    if (tactic === 'defensive') home.name === playerTeam.name ? homeTacticMod = -1 : awayTacticMod = -1;
+                }
+                const effectiveHomeStrength = home.baseStrength + (home.form || 0); const effectiveAwayStrength = away.baseStrength + (away.form || 0);
+                const strengthDiff = effectiveHomeStrength - effectiveAwayStrength; const strengthMod = Math.round(strengthDiff / 3);
+                let homeScore = rollDice() + homeTacticMod + strengthMod; let awayScore = rollDice() + awayTacticMod;
+                homeScore = Math.max(0, homeScore); awayScore = Math.max(0, awayScore);
+
+                if (home.name === playerTeam.name) {
+                    // Season ticket holders always attend
+                    const guaranteedAttendance = playerTeam.seasonTicketsSold;
+                    // Additional matchday ticket buyers
+                    const availableCapacity = home.stadiumCapacity - guaranteedAttendance;
+                    const baseInterest = availableCapacity * 0.4;
+                    const formModifier = 1 + (home.form * 0.1);
+                    const happinessModifier = 0.3 + (playerManager.fanHappiness / 100);
+                    const priceModifier = Math.max(0.2, 1.5 - (playerTeam.matchdayTicketPrice / 25));
+
+                    const additionalAttendance = Math.floor(baseInterest * formModifier * happinessModifier * priceModifier);
+                    attendance = Math.min(home.stadiumCapacity, guaranteedAttendance + additionalAttendance);
+                }
+
+                if (!isCup) { updateStats(home, away, homeScore, awayScore, attendance); match.played = true; match.homeScore = homeScore; match.awayScore = awayScore; }
+
+                let importance = (home.baseStrength + away.baseStrength); if (Math.abs(strengthDiff) < 2) importance += 5;
+                const resultText = `${home.name} ${homeScore} - ${awayScore} ${away.name}`;
+                return { text: resultText, importance, isPlayerMatch, homeScore, awayScore, attendance };
+            }
+
+            function animateAndRender(resultText, playerMatchOutcome) {
+                const newsModal = document.getElementById('news-modal');
+                const outcomeImages = newspaperImages[playerMatchOutcome] || newspaperImages.draw;
+                const randomImage = outcomeImages[Math.floor(Math.random() * outcomeImages.length)];
+                newsModal.querySelector('.modal-content').style.backgroundImage = `url('${randomImage}')`;
+
+                document.getElementById('main-action-btn').disabled = true;
+                document.getElementById('result-display').textContent = 'Simulating...';
+                const [dice1El, dice2El] = [document.getElementById('dice1'), document.getElementById('dice2')];
+                dice1El.classList.add('rolling'); dice2El.classList.add('rolling');
+
+                setTimeout(() => {
+                    dice1El.classList.remove('rolling'); dice2El.classList.remove('rolling');
+                    if (gameState === 'league') renderTable();
+                    if (gameState === 'league') renderFixtures();
+                    updateManagementUI();
+                    document.getElementById('result-display').textContent = resultText;
+                    showManagerNewspaperIntro(() => {
+                        newsModal.style.display = 'flex';
+                    });
+                }, 1000);
+            }
+            document.getElementById('news-close-btn').addEventListener('click', () => {
+                document.getElementById('news-modal').style.display = 'none';
+                document.getElementById('main-action-btn').disabled = false;
+                if (playerManager.jobSecurity <= 0) {
+                    firePlayer();
+                    return;
+                }
+
+                if (gameState === 'league') {
+                    currentRound++;
+
+                    // Random sponsorship offer (5% chance per round if no active sponsorship)
+                    if (Math.random() < 0.05 && (!playerTeam.sponsorship || playerTeam.sponsorship.seasonsRemaining <= 0)) {
+                        setTimeout(() => showSponsorshipOffer(), 1000);
+                    }
+
+                    if (currentRound <= roundsPerSeason) {
+                        updateGameState('league');
+                    } else {
+                        gameState = 'end_of_season';
+                        endSeason();
+                    }
+                } else if (gameState === 'champions_cup') {
+                    if (championsCup.stage === 'groups' && championsCup.round > 6) {
+                        let qualifiers = [];
+                        championsCup.groups.forEach(group => {
+                            const sortedGroup = [...group].sort((a, b) => (b.cp_pts - a.cp_pts) || (b.cp_gd - a.cp_gd));
+                            qualifiers.push(sortedGroup[0], sortedGroup[1]);
+                        });
+                        showKnockoutDraw(qualifiers, 'Round of 16');
+                        return; // Don't update game state yet, wait for draw completion
+                    }
+                    updateGameState('champions_cup');
+                }
+            });
+
+            const updateStats = (home, away, homeScore, awayScore, attendance) => {
+                home.p++; away.p++;
+                home.gf += homeScore; home.ga += awayScore;
+                away.gf += awayScore; away.ga += homeScore;
+                home.gd = home.gf - home.ga; away.gd = away.gf - away.ga;
+
+                let playerIsHome = home.name === playerTeam.name;
+                let playerIsAway = away.name === playerTeam.name;
+                let outcome;
+
+                if (homeScore > awayScore) {
+                    home.w++; home.pts += 3; home.form = Math.min(3, home.form + 1);
+                    away.l++; away.form = Math.max(-3, away.form - 1);
+                    if (playerIsHome) outcome = 'win';
+                    if (playerIsAway) outcome = 'loss';
+                } else if (awayScore > homeScore) {
+                    away.w++; away.pts += 3; away.form = Math.min(3, away.form + 1);
+                    home.l++; home.form = Math.max(-3, home.form - 1);
+                    if (playerIsAway) outcome = 'win';
+                    if (playerIsHome) outcome = 'loss';
+                } else { // Draw
+                    home.d++; away.d++; home.pts++; away.pts++;
+                    if (playerIsHome || playerIsAway) outcome = 'draw';
+                }
+
+                if (outcome) {
+                    updateManagerStats(outcome);
+                    if (playerIsHome) {
+                        // Calculate matchday ticket sales (attendance minus season ticket holders)
+                        const matchdayTicketSales = Math.max(0, attendance - playerTeam.seasonTicketsSold);
+                        const matchdayTicketIncome = matchdayTicketSales * playerTeam.matchdayTicketPrice;
+                        const concessionIncome = attendance * playerTeam.concessionsLevel * 0.5;
+                        const storeIncome = attendance * playerTeam.storeLevel * 0.3;
+                        const totalIncome = Math.round(matchdayTicketIncome + concessionIncome + storeIncome);
+                        playerTeam.money += totalIncome;
+                        console.log(`Match income: $${totalIncome.toLocaleString()} (${matchdayTicketSales} matchday tickets @ $${playerTeam.matchdayTicketPrice})`);
+                    }
+                }
+            };
+
+            function showManagerNewspaperIntro(callback) {
+                // Create manager newspaper intro modal
+                const managerModal = document.createElement('div');
+                managerModal.className = 'modal';
+                managerModal.style.display = 'flex';
+                managerModal.innerHTML = `
+                    <div class="modal-content" style="text-align: center; background: none; border: none; box-shadow: none;">
+                        <img src="manager newspaper.png" style="max-width: 400px; width: 100%; height: auto; border-radius: var(--pico-border-radius); cursor: pointer;" alt="Manager Reading Newspaper">
+                        <p style="margin-top: 1rem; color: white; background: rgba(0,0,0,0.7); padding: 0.5rem; border-radius: var(--pico-border-radius);">Click to read the match report</p>
+                    </div>
+                `;
+
+                document.body.appendChild(managerModal);
+
+                // Click anywhere to continue to newspaper
+                managerModal.addEventListener('click', () => {
+                    document.body.removeChild(managerModal);
+                    callback();
+                });
+
+                // Auto-advance after 3 seconds
+                setTimeout(() => {
+                    if (document.body.contains(managerModal)) {
+                        document.body.removeChild(managerModal);
+                        callback();
+                    }
+                }, 3000);
+            }
+
+            function generateNewspaperArticle(playerMatch, playerOutcome, motd) {
+                let category;
+                if (!playerMatch) return { playerHeadline: "Quiet Day", playerArticle: "Your team was not in action today.", motdHeadline: "", motdArticle: "" };
+
+                const scoreDiff = Math.abs(playerMatch.homeScore - playerMatch.awayScore);
+
+                if (playerOutcome === 'win') category = scoreDiff >= 3 ? 'dominantWin' : 'win';
+                else if (playerOutcome === 'loss') category = scoreDiff >= 3 ? 'heavyLoss' : 'loss';
+                else category = playerMatch.homeScore === 0 ? 'boringDraw' : 'draw';
+
+                const playerTemplates = newspaperTemplates[category];
+                const playerTemplate = playerTemplates[Math.floor(Math.random() * playerTemplates.length)];
+
+                const opponentName = playerMatch.match.home.name === playerTeam.name ? playerMatch.match.away.name : playerMatch.match.home.name;
+                let playerHeadline = playerTemplate.headline.replace(/{playerName}/g, playerTeam.name).replace(/{opponent}/g, opponentName);
+                let playerArticle = playerTemplate.article.replace(/{playerName}/g, playerTeam.name).replace(/{opponent}/g, opponentName).replace(/{homeScore}/g, playerMatch.homeScore).replace(/{awayScore}/g, playerMatch.awayScore).replace(/{attendance}/g, playerMatch.attendance ? playerMatch.attendance.toLocaleString() : 'a sparse');
+
+                const motdTemplate = newspaperTemplates.motd[Math.floor(Math.random() * newspaperTemplates.motd.length)];
+                const motdHome = motd.match.home, motdAway = motd.match.away;
+                const motdHomeScore = motd.homeScore, motdAwayScore = motd.awayScore;
+                let motdHeadline = motdTemplate.headline;
+                let motdArticle = motdTemplate.article.replace(/{homeTeam}/g, motdHome.name).replace(/{awayTeam}/g, motdAway.name).replace(/{homeScore}/g, motdHomeScore).replace(/{awayScore}/g, motdAwayScore).replace(/{totalGoals}/g, motdHomeScore + motdAwayScore);
+                if (motdTemplate.headline.includes("Upset")) {
+                    const winner = motdHomeScore > motdAwayScore ? motdHome : motdAway;
+                    const loser = motdHomeScore > motdAwayScore ? motdAway : motdHome;
+                    const winScore = Math.max(motdHomeScore, motdAwayScore);
+                    const loseScore = Math.min(motdHomeScore, motdAwayScore);
+                    motdArticle = motdArticle.replace(/{winner}/g, winner.name).replace(/{loser}/g, loser.name).replace(/{winScore}/g, winScore).replace(/{loseScore}/g, loseScore);
+                }
+                return { playerHeadline, playerArticle, motdHeadline, motdArticle };
+            }
+
+            function updateManagerStats(outcome) {
+                let securityChange = 0;
+                let happinessChange = 0;
+
+                if (outcome === 'win') {
+                    securityChange = 3;
+                    happinessChange = 5;
+                } else if (outcome === 'draw') {
+                    securityChange = -1;
+                    happinessChange = 1;
+                } else if (outcome === 'loss') {
+                    securityChange = -5;
+                    happinessChange = -5;
+                }
+
+                playerManager.jobSecurity = Math.max(0, Math.min(100, playerManager.jobSecurity + securityChange));
+                playerManager.fanHappiness = Math.max(0, Math.min(100, playerManager.fanHappiness + happinessChange));
+            }
+
+
+            // --- UPGRADE MODAL LOGIC ---
+            const upgradeModal = document.getElementById('upgrade-modal');
+            let currentUpgrade = {};
+            function openUpgradeModal(type, title, level, cost, benefit) {
+                currentUpgrade = { type, cost };
+                document.getElementById('upgrade-title').textContent = title;
+                document.getElementById('upgrade-info').textContent = `Current Level: ${level}. ${benefit}`;
+                document.getElementById('upgrade-cost').textContent = `Cost to Upgrade: $${cost.toLocaleString()}`;
+                upgradeModal.querySelector('#upgrade-confirm-btn').disabled = playerTeam.money < cost;
+                upgradeModal.style.display = 'flex';
+            }
+            document.getElementById('upgrade-training-btn').addEventListener('click', () => {
+                const level = playerTeam.trainingLevel; const cost = 5000 * level * level;
+                openUpgradeModal('training', 'Upgrade Training Facilities', level, cost, 'Improves player development (+0.2 Base Strength).');
+            });
+            document.getElementById('upgrade-academy-btn').addEventListener('click', () => {
+                const level = playerTeam.academyLevel; const cost = 5000 * level * level;
+                openUpgradeModal('academy', 'Upgrade Youth Academy', level, cost, 'Develops future talent (+0.2 Base Strength).');
+            });
+            document.getElementById('seek-sponsorship-btn').addEventListener('click', () => {
+                if (!playerTeam.sponsorship || playerTeam.sponsorship.seasonsRemaining <= 0) {
+                    showSponsorshipOffer();
+                }
+            });
+            document.getElementById('hotspot-stand').addEventListener('click', () => {
+                const level = playerTeam.standLevel;
+                const cost = 50000 * level * level * level; // Much more expensive
+                const capacityIncrease = level <= 2 ? 2000 : level <= 4 ? 3000 : 5000;
+                openUpgradeModal('stand', 'Expand Stadium', level, cost, `Current Capacity: ${playerTeam.stadiumCapacity.toLocaleString()}. Adds ${capacityIncrease.toLocaleString()} seats.`);
+            });
+            document.getElementById('hotspot-concessions').addEventListener('click', () => {
+                const level = playerTeam.concessionsLevel; const cost = 15000 * level * level;
+                openUpgradeModal('concessions', 'Upgrade Concessions', level, cost, 'Increases matchday income from food and drink sales.');
+            });
+            document.getElementById('hotspot-store').addEventListener('click', () => {
+                const level = playerTeam.storeLevel; const cost = 10000 * level * level;
+                openUpgradeModal('store', 'Upgrade Club Store', level, cost, 'Increases matchday income from merchandise sales.');
+            });
+            document.getElementById('upgrade-confirm-btn').addEventListener('click', () => {
+                if (playerTeam.money >= currentUpgrade.cost) {
+                    playerTeam.money -= currentUpgrade.cost;
+                    switch (currentUpgrade.type) {
+                        case 'training': playerTeam.trainingLevel++; playerTeam.baseStrength += 0.2; break;
+                        case 'academy': playerTeam.academyLevel++; playerTeam.baseStrength += 0.2; break;
+                        case 'stand':
+                            const capacityIncrease = playerTeam.standLevel <= 2 ? 2000 : playerTeam.standLevel <= 4 ? 3000 : 5000;
+                            playerTeam.standLevel++;
+                            playerTeam.stadiumCapacity += capacityIncrease;
+                            // Generate new season tickets for expanded capacity
+                            const newSeasonTickets = Math.floor(capacityIncrease * (0.2 + Math.random() * 0.3));
+                            playerTeam.seasonTicketsSold += newSeasonTickets;
+                            break;
+                        case 'concessions': playerTeam.concessionsLevel++; break;
+                        case 'store': playerTeam.storeLevel++; break;
+                    }
+                    updateManagementUI();
+                    upgradeModal.style.display = 'none';
+                }
+            });
+            document.getElementById('upgrade-cancel-btn').addEventListener('click', () => { upgradeModal.style.display = 'none'; });
+
+
+            function endSeason() {
+                const playerLeagueTeams = worldLeagues[playerLeagueName].teams;
+                const sortedTeams = [...playerLeagueTeams].sort((a, b) => (b.pts - a.pts) || (b.gd - a.gd) || (b.gf - a.gf));
+                const champion = sortedTeams[0];
+                const playerPosition = sortedTeams.findIndex(t => t.name === playerTeam.name) + 1;
+
+                playerManager.personalWealth += playerManager.salary;
+                playerTeam.money -= playerManager.salary;
+
+                const prizeMoney = Math.round(Math.max(0, (teamsPerLeague - playerPosition + 1) * 2000));
+                playerTeam.money += prizeMoney;
+                if (playerPosition === 1) playerManager.reputation += 10;
+                else if (playerPosition <= 4) playerManager.reputation += 5;
+
+                // Handle sponsorship payments and contract expiry
+                if (playerTeam.sponsorship && playerTeam.sponsorship.seasonsRemaining > 0) {
+                    playerTeam.money += playerTeam.sponsorship.payment;
+                    playerTeam.sponsorship.seasonsRemaining--;
+                    if (playerTeam.sponsorship.seasonsRemaining <= 0) {
+                        showWarningPopup('Sponsorship Expired', `Your sponsorship deal with ${playerTeam.sponsorship.sponsor} has expired. You can seek new sponsorship opportunities.`);
+                    }
+                }
+
+                // Record champions for all leagues
+                Object.keys(worldLeagues).forEach(leagueName => {
+                    const leagueTeams = worldLeagues[leagueName].teams;
+                    const leagueSorted = [...leagueTeams].sort((a, b) => (b.pts - a.pts) || (b.gd - a.gd) || (b.gf - a.gf));
+
+                    if (!pastChampions[leagueName]) {
+                        pastChampions[leagueName] = [];
+                    }
+
+                    pastChampions[leagueName].push({
+                        season: pastChampions[leagueName].length + 1,
+                        champion: leagueSorted[0].name,
+                        runnerUp: leagueSorted[1].name,
+                        third: leagueSorted[2].name,
+                        championPoints: leagueSorted[0].pts,
+                        runnerUpPoints: leagueSorted[1].pts,
+                        thirdPoints: leagueSorted[2].pts
+                    });
+                });
+
+                // Reset season ticket generation for next season
+                Object.values(worldLeagues).forEach(league => {
+                    league.teams.forEach(team => {
+                        team.seasonTicketsGenerated = false;
+                    });
+                });
+
+                document.getElementById('champion-announcement').textContent = `🏆 ${playerLeagueName} Champions! 🏆`;
+                document.getElementById('champion-team-name').textContent = champion.name;
+                document.getElementById('season-summary').textContent = `You finished ${playerPosition}, earned $${prizeMoney.toLocaleString()} in prize money, and were paid your salary of $${playerManager.salary.toLocaleString()}.`;
+
+                // Add trophy image if player won the league
+                const modalContent = document.querySelector('#end-season-modal .modal-content');
+                const existingImage = modalContent.querySelector('.trophy-image');
+                if (existingImage) existingImage.remove();
+
+                if (playerPosition === 1) {
+                    const trophyImage = document.createElement('img');
+                    trophyImage.src = 'domestic trophy lifting.png';
+                    trophyImage.className = 'trophy-image';
+                    trophyImage.style.cssText = 'max-width: 300px; width: 100%; height: auto; margin: 1rem 0; border-radius: var(--pico-border-radius);';
+                    modalContent.insertBefore(trophyImage, document.getElementById('season-summary'));
+                }
+                document.getElementById('main-action-btn').style.display = 'none';
+                document.getElementById('next-matchday-header').textContent = "Season Finished"; document.getElementById('next-match-display').textContent = "-";
+
+                populateWorldLeaguesView();
+                const buttonsDiv = document.getElementById('end-season-buttons'); buttonsDiv.innerHTML = '';
+                if (playerPosition <= 4) {
+                    const cupButton = document.createElement('button'); cupButton.textContent = 'Enter Champions Cup'; cupButton.onclick = startChampionsCup;
+                    buttonsDiv.appendChild(cupButton);
+                } else {
+                    const newSeasonButton = document.createElement('button'); newSeasonButton.textContent = 'Start New Season'; newSeasonButton.className = 'secondary';
+                    newSeasonButton.onclick = () => setupGame(playerLeagueName, playerTeam.name, { worldLeagues });
+                    buttonsDiv.appendChild(newSeasonButton);
+
+                    const jobHuntButton = document.createElement('button'); jobHuntButton.textContent = 'Look for New Job'; jobHuntButton.className = 'contrast'; jobHuntButton.onclick = () => { document.getElementById('end-season-modal').style.display = 'none'; showJobBoard("End of Season"); };
+                    buttonsDiv.appendChild(jobHuntButton);
+                }
+
+                document.getElementById('end-season-modal').style.display = 'flex';
+                confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
+            }
+
+            function populateWorldLeaguesView() {
+                const worldSelect = document.getElementById('world-league-select');
+                worldSelect.innerHTML = '';
+                Object.keys(worldLeagues).forEach(lName => worldSelect.add(new Option(lName, lName)));
+                worldSelect.value = playerLeagueName;
+                worldSelect.disabled = false;
+
+                const displayLeagueTable = (lName) => {
+                    const league = worldLeagues[lName];
+                    const sorted = [...league.teams].sort((a, b) => (b.pts - a.pts) || (b.gd - a.gd) || (b.gf - a.gf));
+                    let tableHTML = `<table role="grid"><thead><tr><th>Pos</th><th>Team</th><th>Pts</th></tr></thead><tbody>`;
+                    sorted.forEach((t, i) => {
+                        tableHTML += `<tr><td>${i + 1}</td><td>${t.name}</td><td>${t.pts}</td></tr>`;
+                    });
+                    tableHTML += `</tbody></table>`;
+                    document.getElementById('world-leagues-content').innerHTML = tableHTML;
+                };
+
+                worldSelect.onchange = () => displayLeagueTable(worldSelect.value);
+                displayLeagueTable(playerLeagueName);
+            }
+
+            function startChampionsCup() {
+                document.getElementById('end-season-modal').style.display = 'none';
+                playerTeam.money += 20000; // Qualification bonus
+                championsCup = { active: true, stage: 'groups', round: 1, groups: [], fixtures: [], knockoutFixtures: [] };
+
+                let qualifiedTeams = [];
+                Object.values(worldLeagues).forEach(league => {
+                    const topFour = [...league.teams].sort((a, b) => (b.pts - a.pts) || (b.gd - a.gd) || (b.gf - a.gf)).slice(0, 4);
+                    qualifiedTeams.push(...topFour);
+                });
+
+                qualifiedTeams.forEach(t => { t.form = 0; t.cp_p = 0; t.cp_pts = 0; t.cp_w = 0; t.cp_d = 0; t.cp_l = 0; t.cp_gf = 0; t.cp_ga = 0; t.cp_gd = 0; });
+
+                // Show group stage draw simulation
+                showChampionsCupGroupDraw(qualifiedTeams);
+            }
+
+            function showChampionsCupGroupDraw(qualifiedTeams) {
+                // Create seeded pots based on team strength
+                const pot1 = [], pot2 = [], pot3 = [], pot4 = [];
+                const sortedTeams = [...qualifiedTeams].sort((a, b) => b.baseStrength - a.baseStrength);
+
+                for (let i = 0; i < sortedTeams.length; i++) {
+                    if (i < 8) pot1.push(sortedTeams[i]);
+                    else if (i < 16) pot2.push(sortedTeams[i]);
+                    else if (i < 24) pot3.push(sortedTeams[i]);
+                    else pot4.push(sortedTeams[i]);
+                }
+
+                // Shuffle pots
+                [pot1, pot2, pot3, pot4].forEach(pot => pot.sort(() => 0.5 - Math.random()));
+
+                // Create modal for draw simulation
+                const drawModal = document.createElement('div');
+                drawModal.className = 'modal';
+                drawModal.style.display = 'flex';
+                drawModal.innerHTML = `
+                    <div class="modal-content">
+                        <h2>🏆 Champions Cup Group Stage Draw 🏆</h2>
+                        <div id="draw-animation">
+                            <h4>Drawing groups...</h4>
+                            <div id="draw-progress"></div>
+                        </div>
+                        <div id="draw-results" style="display: none;">
+                            <div id="final-groups"></div>
+                            <button id="continue-to-cup">Continue to Champions Cup</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(drawModal);
+
+                // Animate the draw
+                let currentGroup = 0;
+                const groups = [];
+                for (let i = 0; i < 8; i++) groups.push([]);
+
+                const drawProgress = document.getElementById('draw-progress');
+
+                function drawNextTeam(potIndex, teamIndex) {
+                    if (potIndex >= 4) {
+                        // Draw complete, show results
+                        championsCup.groups = groups;
+                        generateGroupFixtures();
+                        showDrawResults(drawModal, groups);
+                        return;
+                    }
+
+                    const pots = [pot1, pot2, pot3, pot4];
+                    const potNames = ['Pot 1 (Strongest)', 'Pot 2', 'Pot 3', 'Pot 4 (Weakest)'];
+
+                    if (teamIndex >= pots[potIndex].length) {
+                        // Move to next pot
+                        setTimeout(() => drawNextTeam(potIndex + 1, 0), 500);
+                        return;
+                    }
+
+                    const team = pots[potIndex][teamIndex];
+                    const groupIndex = teamIndex % 8;
+                    groups[groupIndex].push(team);
+
+                    drawProgress.innerHTML = `
+                        <p><strong>${potNames[potIndex]}</strong></p>
+                        <p>Drawing: <strong>${team.name}</strong></p>
+                        <p>→ Group ${String.fromCharCode(65 + groupIndex)}</p>
+                        <div style="margin-top: 1rem;">
+                            ${groups.map((group, i) =>
+                        `<small>Group ${String.fromCharCode(65 + i)}: ${group.map(t => t.name).join(', ')}</small>`
+                    ).join('<br>')}
+                        </div>
+                    `;
+
+                    setTimeout(() => drawNextTeam(potIndex, teamIndex + 1), 1000);
+                }
+
+                setTimeout(() => drawNextTeam(0, 0), 1000);
+            }
+
+            function showDrawResults(modal, groups) {
+                document.getElementById('draw-animation').style.display = 'none';
+                document.getElementById('draw-results').style.display = 'block';
+
+                let groupsHTML = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">';
+                groups.forEach((group, index) => {
+                    groupsHTML += `
+                        <div style="border: 1px solid var(--pico-form-field-border-color); padding: 1rem; border-radius: var(--pico-border-radius);">
+                            <h5>Group ${String.fromCharCode(65 + index)}</h5>
+                            ${group.map(team => `<p style="margin: 0.2rem 0; ${team.name === playerTeam.name ? 'font-weight: bold; color: var(--pico-primary);' : ''}">${team.name}</p>`).join('')}
+                        </div>
+                    `;
+                });
+                groupsHTML += '</div>';
+
+                document.getElementById('final-groups').innerHTML = groupsHTML;
+
+                document.getElementById('continue-to-cup').onclick = () => {
+                    document.body.removeChild(modal);
+                    updateGameState('champions_cup');
+                };
+            }
+
+            function generateGroupFixtures() {
+                let groupFixtures = [];
+                for (let i = 0; i < 6; i++) {
+                    groupFixtures.push([]);
+                }
+
+                championsCup.groups.forEach(group => {
+                    const roundPairings = [
+                        [[0, 1], [2, 3]], [[0, 2], [1, 3]], [[0, 3], [1, 2]],
+                        [[1, 0], [3, 2]], [[2, 0], [3, 1]], [[3, 0], [2, 1]]
+                    ];
+
+                    for (let round = 0; round < 6; round++) {
+                        const roundMatches = roundPairings[round];
+                        roundMatches.forEach(pairing => {
+                            groupFixtures[round].push({
+                                home: group[pairing[0]],
+                                away: group[pairing[1]]
+                            });
+                        });
+                    }
+                });
+                championsCup.fixtures = groupFixtures;
+            }
+
+            function showKnockoutDraw(teams, roundName) {
+                // Create modal for knockout draw simulation
+                const drawModal = document.createElement('div');
+                drawModal.className = 'modal';
+                drawModal.style.display = 'flex';
+                drawModal.innerHTML = `
+                    <div class="modal-content">
+                        <h2>🏆 Champions Cup ${roundName} Draw 🏆</h2>
+                        <div id="knockout-draw-animation">
+                            <h4>Drawing ${roundName} matchups...</h4>
+                            <div id="knockout-draw-progress"></div>
+                        </div>
+                        <div id="knockout-draw-results" style="display: none;">
+                            <div id="knockout-fixtures"></div>
+                            <button id="continue-to-knockout">Continue to ${roundName}</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(drawModal);
+
+                const drawProgress = document.getElementById('knockout-draw-progress');
+                const fixtures = [];
+
+                // Shuffle teams for random draw
+                const shuffledTeams = [...teams].sort(() => 0.5 - Math.random());
+
+                function drawNextFixture(index) {
+                    if (index >= shuffledTeams.length) {
+                        // Draw complete, show results
+                        championsCup.knockoutFixtures = fixtures;
+                        championsCup.stage = 'knockout';
+                        if (roundName === 'Round of 16') championsCup.round = 1;
+
+                        // Award qualification bonus
+                        if (fixtures.some(f => f.home.name === playerTeam.name || f.away.name === playerTeam.name)) {
+                            playerTeam.money += 25000;
+                        }
+
+                        showKnockoutDrawResults(drawModal, fixtures, roundName);
+                        return;
+                    }
+
+                    if (index % 2 === 0 && index + 1 < shuffledTeams.length) {
+                        const home = shuffledTeams[index];
+                        const away = shuffledTeams[index + 1];
+                        fixtures.push({ home, away });
+
+                        drawProgress.innerHTML = `
+                            <p><strong>Drawing Match ${Math.floor(index / 2) + 1}</strong></p>
+                            <p><strong>${home.name}</strong> vs <strong>${away.name}</strong></p>
+                            <div style="margin-top: 1rem;">
+                                <h5>Current ${roundName} Fixtures:</h5>
+                                ${fixtures.map((fixture, i) =>
+                            `<p style="margin: 0.2rem 0; ${(fixture.home.name === playerTeam.name || fixture.away.name === playerTeam.name) ? 'font-weight: bold; color: var(--pico-primary);' : ''}">
+                                        ${fixture.home.name} vs ${fixture.away.name}
+                                    </p>`
+                        ).join('')}
+                            </div>
+                        `;
+                    }
+
+                    setTimeout(() => drawNextFixture(index + 2), 1500);
+                }
+
+                setTimeout(() => drawNextFixture(0), 1000);
+            }
+
+            function showKnockoutDrawResults(modal, fixtures, roundName) {
+                document.getElementById('knockout-draw-animation').style.display = 'none';
+                document.getElementById('knockout-draw-results').style.display = 'block';
+
+                let fixturesHTML = `<h4>${roundName} Fixtures</h4>`;
+                fixturesHTML += '<div style="display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center;">';
+
+                fixtures.forEach((fixture, index) => {
+                    const isPlayerMatch = fixture.home.name === playerTeam.name || fixture.away.name === playerTeam.name;
+                    fixturesHTML += `
+                        <span style="border: 1px solid var(--pico-form-field-border-color); padding: 0.3rem 0.8rem; border-radius: var(--pico-border-radius); ${isPlayerMatch ? 'border-color: var(--pico-primary); background-color: rgba(30, 136, 229, 0.1); font-weight: bold; color: var(--pico-primary);' : ''} font-size: 0.9rem; white-space: nowrap;">
+                            ${fixture.home.name} vs ${fixture.away.name}
+                        </span>
+                    `;
+                });
+                fixturesHTML += '</div>';
+
+                document.getElementById('knockout-fixtures').innerHTML = fixturesHTML;
+
+                document.getElementById('continue-to-knockout').onclick = () => {
+                    document.body.removeChild(modal);
+                    updateGameState('champions_cup');
+                };
+            }
+
+            function displayChampionsCupUI() {
+                const stageNameEl = document.getElementById('champions-cup-stage-name');
+                const contentEl = document.getElementById('champions-cup-content');
+                const resultsEl = document.getElementById('champions-cup-results');
+                const mainActionButton = document.getElementById('main-action-btn');
+
+                resultsEl.innerHTML = '';
+                displayNextChampionsCupMatchInfo(); // Add next match preview
+
+                if (championsCup.stage === 'groups') {
+                    stageNameEl.textContent = `Group Stage - Matchday ${championsCup.round}`;
+                    let groupHTML = '<div id="champions-cup-groups">';
+                    championsCup.groups.forEach((group, index) => {
+                        const sortedGroup = [...group].sort((a, b) => (b.cp_pts - a.cp_pts) || (b.cp_gd - a.cp_gd));
+                        groupHTML += `<figure><figcaption>Group ${String.fromCharCode(65 + index)}</figcaption><table role="grid"><thead><tr><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead><tbody>`;
+                        sortedGroup.forEach(t => {
+                            let style = t.name === playerTeam.name ? 'style="font-weight:bold;"' : '';
+                            groupHTML += `<tr ${style}><td>${t.name.substring(0, 10)}..</td><td>${t.cp_p}</td><td>${t.cp_w}</td><td>${t.cp_d}</td><td>${t.cp_l}</td><td>${t.cp_gd}</td><td>${t.cp_pts}</td></tr>`;
+                        });
+                        groupHTML += '</tbody></table></figure>';
+                    });
+                    groupHTML += '</div>';
+                    contentEl.innerHTML = groupHTML;
+
+                    const nextMatch = getNextChampionsCupMatch();
+                    if (nextMatch) {
+                        mainActionButton.textContent = `Play Group Matchday ${championsCup.round}`;
+                    } else {
+                        mainActionButton.textContent = `Simulate Group Matchday ${championsCup.round}`;
+                    }
+
+                } else { // Knockout Stage
+                    const roundNames = ["Round of 16", "Quarter-Final", "Semi-Final", "Final"];
+                    stageNameEl.textContent = roundNames[championsCup.round - 1];
+                    let knockoutHTML = '<ul>';
+                    championsCup.knockoutFixtures.forEach(match => {
+                        let style = (match.home.name === playerTeam.name || match.away.name === playerTeam.name) ? 'style="font-weight:bold;"' : '';
+                        knockoutHTML += `<li ${style}>${match.home.name} vs ${match.away.name}</li>`;
+                    });
+                    knockoutHTML += '</ul>';
+                    contentEl.innerHTML = knockoutHTML;
+
+                    const playerInCup = championsCup.knockoutFixtures.some(m => m.home.name === playerTeam.name || m.away.name === playerTeam.name);
+                    mainActionButton.textContent = playerInCup ? `Play ${roundNames[championsCup.round - 1]}` : `Simulate ${roundNames[championsCup.round - 1]}`;
+                }
+            }
+
+            function renderCupFixtures() { /* placeholder */ }
+            function displayNextCupMatchInfo() { /* placeholder */ }
+
+            function playChampionsCupRound() {
+                if (championsCup.stage === 'groups') playChampionsCupGroupRound();
+                else playChampionsCupKnockoutRound();
+            }
+
+            function getNextChampionsCupMatch() {
+                if (championsCup.stage === 'groups' && championsCup.round <= 6) {
+                    const roundFixtures = championsCup.fixtures[championsCup.round - 1];
+                    return roundFixtures.find(match =>
+                        match.home.name === playerTeam.name || match.away.name === playerTeam.name
+                    );
+                } else if (championsCup.stage === 'knockout') {
+                    return championsCup.knockoutFixtures.find(match =>
+                        match.home.name === playerTeam.name || match.away.name === playerTeam.name
+                    );
+                }
+                return null;
+            }
+
+            function showNewspaper(result, round) {
+                // Determine outcome
+                const playerIsHome = result.match.home.name === playerTeam.name;
+                let playerOutcome = 'draw';
+                if (result.homeScore === result.awayScore) {
+                    playerOutcome = 'draw';
+                } else if ((playerIsHome && result.homeScore > result.awayScore) ||
+                    (!playerIsHome && result.awayScore > result.homeScore)) {
+                    playerOutcome = 'win';
+                } else {
+                    playerOutcome = 'loss';
+                }
+
+                // Generate article content
+                const articleContent = generateNewspaperArticle(result, playerOutcome, result);
+
+                // Set newspaper content
+                document.getElementById('news-title').textContent = newspaperNames[Math.floor(Math.random() * newspaperNames.length)];
+                document.getElementById('news-round-number').textContent = `Champions Cup - Round ${round}`;
+                document.getElementById('news-player-headline').textContent = articleContent.playerHeadline;
+                document.getElementById('news-player-article').textContent = articleContent.playerArticle;
+                document.getElementById('news-motd-headline').textContent = "Champions Cup Action";
+                document.getElementById('news-motd-article').textContent = "The Champions Cup continues with thrilling matches across all groups.";
+
+                // Set background image based on outcome
+                const newsModal = document.getElementById('news-modal');
+                const outcomeImages = newspaperImages[playerOutcome] || newspaperImages.draw;
+                const randomImage = outcomeImages[Math.floor(Math.random() * outcomeImages.length)];
+                newsModal.querySelector('.modal-content').style.backgroundImage = `url('${randomImage}')`;
+
+                // Show modal with manager intro
+                showManagerNewspaperIntro(() => {
+                    newsModal.style.display = 'flex';
+                });
+
+                // Update manager stats
+                updateManagerStats(playerOutcome);
+            }
+
+            function showNewspaperThenDraw(result, roundName, winners, nextRoundName) {
+                // Show newspaper first
+                showNewspaper(result, roundName);
+
+                // Override the news close button to show draw after newspaper is closed
+                const originalCloseHandler = document.getElementById('news-close-btn').onclick;
+                document.getElementById('news-close-btn').onclick = () => {
+                    document.getElementById('news-modal').style.display = 'none';
+                    document.getElementById('main-action-btn').disabled = false;
+
+                    // Show the knockout draw after newspaper is closed
+                    setTimeout(() => {
+                        showKnockoutDraw(winners, nextRoundName);
+                    }, 500);
+
+                    // Restore original handler for future use
+                    document.getElementById('news-close-btn').onclick = originalCloseHandler;
+                };
+            }
+
+            function playChampionsCupGroupRound() {
+                const roundFixtures = championsCup.fixtures[championsCup.round - 1];
+                const playerMatch = roundFixtures.find(match =>
+                    match.home.name === playerTeam.name || match.away.name === playerTeam.name
+                );
+
+                if (playerMatch) {
+                    // Use dice animation and simulation like regular season
+                    document.getElementById('main-action-btn').disabled = true;
+                    document.getElementById('result-display').textContent = 'Rolling dice...';
+
+                    const [dice1El, dice2El] = [document.getElementById('dice1'), document.getElementById('dice2')];
+                    dice1El.classList.add('rolling');
+                    dice2El.classList.add('rolling');
+
+                    setTimeout(() => {
+                        dice1El.classList.remove('rolling');
+                        dice2El.classList.remove('rolling');
+
+                        const tactic = document.getElementById('tactic-select').value;
+                        const dice1 = rollDice(), dice2 = rollDice();
+                        const result = simulatePlayerMatch(playerMatch, dice1, dice2, tactic);
+
+                        // Update dice display
+                        dice1El.style.transform = `rotateX(${dice1 * 90}deg)`;
+                        dice2El.style.transform = `rotateX(${dice2 * 90}deg)`;
+
+                        document.getElementById('result-display').textContent = result.text;
+
+                        updateCupGroupStats(playerMatch.home, playerMatch.away, result.homeScore, result.awayScore);
+
+                        // Prize money for player
+                        if ((result.homeScore > result.awayScore && playerMatch.home.name === playerTeam.name) ||
+                            (result.awayScore > result.homeScore && playerMatch.away.name === playerTeam.name)) {
+                            playerTeam.money += 10000;
+                        } else if (result.homeScore === result.awayScore) {
+                            playerTeam.money += 3000;
+                        }
+
+                        // Simulate other matches in the round
+                        let resultsHTML = '';
+                        roundFixtures.forEach(match => {
+                            if (match.home.name !== playerTeam.name && match.away.name !== playerTeam.name) {
+                                const otherResult = simulateMatch(match, true);
+                                updateCupGroupStats(match.home, match.away, otherResult.homeScore, otherResult.awayScore);
+                                resultsHTML += `<p>${otherResult.text}</p>`;
+                            }
+                        });
+
+                        if (resultsHTML) {
+                            document.getElementById('champions-cup-results').innerHTML = resultsHTML;
+                        }
+
+                        championsCup.round++;
+
+                        if (championsCup.round > 6) {
+                            let qualifiers = [];
+                            championsCup.groups.forEach(group => {
+                                const sortedGroup = [...group].sort((a, b) => (b.cp_pts - a.cp_pts) || (b.cp_gd - a.cp_gd));
+                                qualifiers.push(sortedGroup[0], sortedGroup[1]);
+                            });
+
+                            // Show newspaper first, then draw after it's closed
+                            setTimeout(() => {
+                                showNewspaperThenDraw(result, championsCup.round - 1, qualifiers, 'Round of 16');
+                            }, 1000);
+                        } else {
+                            // Show newspaper after a delay (normal group stage match)
+                            setTimeout(() => {
+                                showNewspaper(result, championsCup.round - 1);
+                            }, 1000);
+                        }
+
+                    }, 1000); // Dice animation duration
+                } else {
+                    // No player match, just simulate all matches
+                    let resultsHTML = '';
+                    roundFixtures.forEach(match => {
+                        const result = simulateMatch(match, true);
+                        updateCupGroupStats(match.home, match.away, result.homeScore, result.awayScore);
+                        resultsHTML += `<p>${result.text}</p>`;
+                    });
+
+                    document.getElementById('champions-cup-results').innerHTML = resultsHTML;
+                    championsCup.round++;
+
+                    if (championsCup.round > 6) {
+                        let qualifiers = [];
+                        championsCup.groups.forEach(group => {
+                            const sortedGroup = [...group].sort((a, b) => (b.cp_pts - a.cp_pts) || (b.cp_gd - a.cp_gd));
+                            qualifiers.push(sortedGroup[0], sortedGroup[1]);
+                        });
+                        qualifiers.sort(() => 0.5 - Math.random());
+                        championsCup.knockoutFixtures = [];
+                        for (let i = 0; i < qualifiers.length; i += 2) championsCup.knockoutFixtures.push({ home: qualifiers[i], away: qualifiers[i + 1] });
+                        championsCup.stage = 'knockout';
+                        championsCup.round = 1;
+                        if (qualifiers.some(t => t.name === playerTeam.name)) playerTeam.money += 25000;
+                    }
+                    updateGameState('champions_cup');
+                }
+            }
+
+            function updateCupGroupStats(home, away, homeScore, awayScore) {
+                home.cp_p++; away.cp_p++;
+                home.cp_gf += homeScore; home.cp_ga += awayScore;
+                away.cp_gf += awayScore; away.cp_ga += homeScore;
+                home.cp_gd = home.cp_gf - home.cp_ga;
+                away.cp_gd = away.cp_gf - away.cp_ga;
+
+                if (homeScore > awayScore) { home.cp_w++; home.cp_pts += 3; away.cp_l++; }
+                else if (awayScore > homeScore) { away.cp_w++; away.cp_pts += 3; home.cp_l++; }
+                else { home.cp_d++; home.cp_pts++; away.cp_d++; away.cp_pts++; }
+            }
+
+            function playChampionsCupKnockoutRound() {
+                const playerMatch = championsCup.knockoutFixtures.find(match =>
+                    match.home.name === playerTeam.name || match.away.name === playerTeam.name
+                );
+
+                if (playerMatch) {
+                    // Use dice animation for player knockout match
+                    document.getElementById('main-action-btn').disabled = true;
+                    document.getElementById('result-display').textContent = 'Rolling dice...';
+
+                    const [dice1El, dice2El] = [document.getElementById('dice1'), document.getElementById('dice2')];
+                    dice1El.classList.add('rolling');
+                    dice2El.classList.add('rolling');
+
+                    setTimeout(() => {
+                        dice1El.classList.remove('rolling');
+                        dice2El.classList.remove('rolling');
+
+                        const tactic = document.getElementById('tactic-select').value;
+                        let result;
+                        do {
+                            const dice1 = rollDice(), dice2 = rollDice();
+                            result = simulatePlayerMatch(playerMatch, dice1, dice2, tactic);
+                        } while (result.homeScore === result.awayScore); // No draws in knockout
+
+                        // Update dice display
+                        dice1El.style.transform = `rotateX(${Math.random() * 360}deg)`;
+                        dice2El.style.transform = `rotateX(${Math.random() * 360}deg)`;
+
+                        const winner = result.homeScore > result.awayScore ? playerMatch.home : playerMatch.away;
+                        document.getElementById('result-display').textContent = `${result.text} (Winner: ${winner.name})`;
+
+                        // Prize money for winning
+                        if (winner.name === playerTeam.name) {
+                            playerTeam.money += 20000 * championsCup.round;
+                        }
+
+                        // Simulate other knockout matches
+                        let winners = [winner];
+                        let resultsHTML = `<p><strong>${result.text} (Winner: ${winner.name})</strong></p>`;
+
+                        championsCup.knockoutFixtures.forEach(match => {
+                            if (match.home.name !== playerTeam.name && match.away.name !== playerTeam.name) {
+                                let otherResult;
+                                do { otherResult = simulateMatch(match, true); } while (otherResult.homeScore === otherResult.awayScore);
+                                const otherWinner = otherResult.homeScore > otherResult.awayScore ? match.home : match.away;
+                                winners.push(otherWinner);
+                                resultsHTML += `<p>${otherResult.text} (Winner: ${otherWinner.name})</p>`;
+                            }
+                        });
+
+                        document.getElementById('champions-cup-results').innerHTML = resultsHTML;
+
+                        championsCup.round++;
+                        if (winners.length > 1) {
+                            const roundNames = ["Round of 16", "Quarter-Final", "Semi-Final", "Final"];
+
+                            // Show newspaper first, then draw after it's closed
+                            setTimeout(() => {
+                                showNewspaperThenDraw(result, `${roundNames[championsCup.round - 2]}`, winners, roundNames[championsCup.round - 1]);
+                            }, 1000);
+                        } else {
+                            const finalWinner = winners[0];
+                            if (finalWinner.name === playerTeam.name) {
+                                playerTeam.money += 100000;
+                                playerManager.reputation += 20;
+
+                                setTimeout(() => {
+                                    showNewspaper(result, "Champions Cup Final");
+                                    setTimeout(() => {
+                                        showChampionsCupVictory(finalWinner, true);
+                                    }, 2000);
+                                }, 1000);
+                            } else {
+                                setTimeout(() => {
+                                    showNewspaper(result, "Champions Cup Final");
+                                    setTimeout(() => {
+                                        showChampionsCupVictory(finalWinner, false);
+                                    }, 2000);
+                                }, 1000);
+                            }
+                        }
+
+                    }, 1000); // Dice animation duration
+                } else {
+                    // No player match, simulate all knockout matches
+                    let winners = [], resultsHTML = '';
+                    championsCup.knockoutFixtures.forEach(match => {
+                        let result;
+                        do { result = simulateMatch(match, true); } while (result.homeScore === result.awayScore);
+                        const winner = result.homeScore > result.awayScore ? match.home : match.away;
+                        winners.push(winner);
+                        resultsHTML += `<p>${result.text} (Winner: ${winner.name})</p>`;
+                    });
+                    document.getElementById('champions-cup-results').innerHTML = resultsHTML;
+
+                    championsCup.round++;
+                    if (winners.length > 1) {
+                        const roundNames = ["Round of 16", "Quarter-Final", "Semi-Final", "Final"];
+                        showKnockoutDraw(winners, roundNames[championsCup.round - 1]);
+                    } else {
+                        const finalWinner = winners[0];
+                        showChampionsCupVictory(finalWinner, finalWinner.name === playerTeam.name);
+                    }
+                }
+            }
+
+            // --- CHAMPIONS CUP VICTORY MODAL ---
+            function showChampionsCupVictory(winner, isPlayerWin) {
+                const victoryModal = document.createElement('div');
+                victoryModal.className = 'modal';
+                victoryModal.style.display = 'flex';
+
+                let modalContent = `
+                    <div class="modal-content" style="text-align: center;">
+                        <h2>🏆 Champions Cup Final 🏆</h2>
+                        <h3>${winner.name} are Champions!</h3>
+                `;
+
+                if (isPlayerWin) {
+                    modalContent += `
+                        <img src="champions cup throphy.png" style="max-width: 300px; width: 100%; height: auto; margin: 1rem 0; border-radius: var(--pico-border-radius);" alt="Champions Cup Trophy">
+                        <p><strong>Congratulations! You've won the Champions Cup!</strong></p>
+                        <p>Prize money: $100,000 | Reputation: +20</p>
+                    `;
+                } else {
+                    modalContent += `
+                        <p>${winner.name} have been crowned Champions Cup winners!</p>
+                        <p>Better luck next time!</p>
+                    `;
+                }
+
+                modalContent += `
+                        <button onclick="this.parentElement.parentElement.remove(); endChampionsCupSeason();">Continue to New Season</button>
+                    </div>
+                `;
+
+                victoryModal.innerHTML = modalContent;
+                document.body.appendChild(victoryModal);
+
+                if (isPlayerWin) {
+                    confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
+                }
+            }
+
+            function endChampionsCupSeason() {
+                // Reset Champions Cup state completely
+                championsCup = { active: false, stage: '', round: 0, groups: [], fixtures: [], knockoutFixtures: [] };
+
+                // Reset current round to end of season
+                currentRound = roundsPerSeason + 1;
+
+                // Reset game state to end of season
+                gameState = 'end_of_season';
+
+                // Call the normal end season function to handle season wrap-up
+                endSeason();
+            }
+
+            // --- SPONSORSHIP SYSTEM ---
+            function generateSponsorshipOffer() {
+                const sponsorNames = [
+                    "Global Sports Inc.", "TechCorp United", "Premier Banking", "Elite Motors",
+                    "Championship Energy", "Victory Airlines", "Champion Foods", "Sports Gear Pro",
+                    "Digital Solutions Ltd", "Premium Insurance", "Fast Logistics", "Quality Beverages"
+                ];
+
+                const sponsorTypes = [
+                    { type: "Kit Sponsor", multiplier: 1.5, duration: 2 },
+                    { type: "Stadium Naming Rights", multiplier: 2.0, duration: 3 },
+                    { type: "Training Ground Sponsor", multiplier: 1.2, duration: 1 },
+                    { type: "Official Partner", multiplier: 1.8, duration: 2 }
+                ];
+
+                const randomSponsor = sponsorNames[Math.floor(Math.random() * sponsorNames.length)];
+                const randomType = sponsorTypes[Math.floor(Math.random() * sponsorTypes.length)];
+
+                // Base offer depends on team strength and reputation
+                const baseOffer = (playerTeam.baseStrength * 1000 + playerManager.reputation * 500) * randomType.multiplier;
+                const seasonalPayment = Math.round(baseOffer);
+
+                return {
+                    sponsor: randomSponsor,
+                    type: randomType.type,
+                    payment: seasonalPayment,
+                    duration: randomType.duration,
+                    totalValue: seasonalPayment * randomType.duration
+                };
+            }
+
+            function showSponsorshipOffer() {
+                const offer = generateSponsorshipOffer();
+
+                const sponsorModal = document.createElement('div');
+                sponsorModal.className = 'modal';
+                sponsorModal.style.display = 'flex';
+                sponsorModal.innerHTML = `
+                    <div class="modal-content">
+                        <h2>📋 Sponsorship Offer</h2>
+                        <h3>${offer.sponsor}</h3>
+                        <p><strong>Deal Type:</strong> ${offer.type}</p>
+                        <p><strong>Payment:</strong> $${offer.payment.toLocaleString()} per season</p>
+                        <p><strong>Duration:</strong> ${offer.duration} season${offer.duration > 1 ? 's' : ''}</p>
+                        <p><strong>Total Value:</strong> $${offer.totalValue.toLocaleString()}</p>
+                        <div style="margin-top: 1rem;">
+                            <button id="accept-sponsor" style="margin-right: 1rem;">Accept Deal</button>
+                            <button id="reject-sponsor" class="secondary">Reject Deal</button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(sponsorModal);
+
+                document.getElementById('accept-sponsor').onclick = () => {
+                    playerTeam.sponsorship = {
+                        sponsor: offer.sponsor,
+                        type: offer.type,
+                        payment: offer.payment,
+                        seasonsRemaining: offer.duration
+                    };
+                    playerTeam.money += offer.payment;
+                    showSuccessPopup('Sponsorship Deal Signed!', `Congratulations! You've signed a ${offer.duration}-season deal with ${offer.sponsor} worth $${offer.totalValue.toLocaleString()}!`);
+                    document.body.removeChild(sponsorModal);
+                    updateManagementUI();
+                };
+
+                document.getElementById('reject-sponsor').onclick = () => {
+                    showAnimatedPopup('Offer Declined', "You've declined the sponsorship offer. Another opportunity may come later.");
+                    document.body.removeChild(sponsorModal);
+                };
+            }
+
+            // --- JOB SYSTEM ---
+            function firePlayer() {
+                showErrorPopup("You're Fired!", "The board are unhappy with recent performances. You're Fired!");
+                showJobBoard("You've been Fired!");
+            }
+
+            function showJobBoard(title) {
+                updateGameState('job_board');
+                document.getElementById('job-board-title').textContent = title;
+                document.getElementById('job-board-reputation').textContent = playerManager.reputation;
+                const listingsEl = document.getElementById('job-board-listings');
+                listingsEl.innerHTML = '';
+
+                let availableClubs = [];
+                Object.keys(worldLeagues).forEach(lName => {
+                    worldLeagues[lName].teams.forEach(team => {
+                        if (team.name !== playerTeam.name) availableClubs.push({ ...team, leagueName: lName });
+                    });
+                });
+                availableClubs.sort(() => 0.5 - Math.random());
+                const jobOpenings = availableClubs.slice(0, 5);
+
+                jobOpenings.forEach(club => {
+                    const article = document.createElement('article');
+                    const chance = Math.min(100, Math.max(5, playerManager.reputation - (club.baseStrength * 5) + 50));
+                    article.innerHTML = `<h4>${club.name}</h4><p><small>${club.leagueName}</small></p><p>Strength: ${club.baseStrength}</p><p>Interview Chance: ${chance.toFixed(0)}%</p><button data-club-name="${club.name}" data-league-name="${club.leagueName}">Apply for Job</button>`;
+                    listingsEl.appendChild(article);
+                });
+            }
+
+            document.getElementById('job-board-listings').addEventListener('click', (e) => {
+                if (e.target.tagName === 'BUTTON') {
+                    const clubName = e.target.dataset.clubName;
+                    const leagueName = e.target.dataset.leagueName;
+                    const club = worldLeagues[leagueName].teams.find(t => t.name === clubName);
+                    const chance = Math.min(100, Math.max(5, playerManager.reputation - (club.baseStrength * 5) + 50));
+                    const roll = Math.random() * 100;
+
+                    if (roll < chance) {
+                        showSuccessPopup('Job Offer!', `Congratulations! ${club.name} have offered you the manager position.`);
+                        setupGame(leagueName, clubName, { worldLeagues });
+                    } else {
+                        showErrorPopup('Application Rejected', `Unfortunately, ${club.name} have decided to go with another candidate.`);
+                        playerManager.reputation = Math.max(0, playerManager.reputation - 2);
+                        showJobBoard("The Job Hunt Continues");
+                    }
+                }
+            });
+
+            // --- FANS & MEDIA TICKET PRICE ---
+            // const ticketSlider = document.getElementById('ticket-price-slider');
+            // const ticketValue = document.getElementById('ticket-price-value');
+            // ticketSlider.addEventListener('input', () => {
+            // playerTeam.ticketPrice = parseInt(ticketSlider.value);
+            // ticketValue.textContent = `$${playerTeam.ticketPrice}`;
+            // const priceEffect = (100 - playerTeam.ticketPrice) / 10;
+            // playerManager.fanHappiness = Math.max(0, Math.min(100, playerManager.fanHappiness + priceEffect));
+            // updateManagementUI();
+            // });
+
+            // --- NEW TICKET SYSTEM ---
+            const seasonTicketSlider = document.getElementById('season-ticket-price-slider');
+            const seasonTicketValue = document.getElementById('season-ticket-price-value');
+            const matchdayTicketSlider = document.getElementById('matchday-ticket-price-slider');
+            const matchdayTicketValue = document.getElementById('matchday-ticket-price-value');
+
+            if (seasonTicketSlider) {
+                seasonTicketSlider.addEventListener('input', () => {
+                    playerTeam.seasonTicketPrice = parseInt(seasonTicketSlider.value);
+                    seasonTicketValue.textContent = `$${playerTeam.seasonTicketPrice}`;
+                    const priceEffect = (100 - playerTeam.seasonTicketPrice) / 20;
+                    playerManager.fanHappiness = Math.max(0, Math.min(100, playerManager.fanHappiness + priceEffect));
+                    updateManagementUI();
+                });
+            }
+
+            if (matchdayTicketSlider) {
+                matchdayTicketSlider.addEventListener('input', () => {
+                    playerTeam.matchdayTicketPrice = parseInt(matchdayTicketSlider.value);
+                    matchdayTicketValue.textContent = `$${playerTeam.matchdayTicketPrice}`;
+                    const priceEffect = (25 - playerTeam.matchdayTicketPrice) / 5;
+                    playerManager.fanHappiness = Math.max(0, Math.min(100, playerManager.fanHappiness + priceEffect));
+                    updateManagementUI();
+                });
+            }
+
+            // --- FANS & MEDIA PROMOTIONS ---
+            document.getElementById('run-radio-promo-btn').addEventListener('click', () => {
+                if (playerTeam.money >= 2000) {
+                    playerTeam.money -= 2000;
+                    playerManager.fanHappiness = Math.min(100, playerManager.fanHappiness + 5);
+                    showSuccessPopup('Radio Giveaway Success!', "The radio giveaway was a success! Fans are buzzing.");
+                    updateManagementUI();
+                }
+            });
+            document.getElementById('run-tv-promo-btn').addEventListener('click', () => {
+                if (playerTeam.money >= 10000) {
+                    playerTeam.money -= 10000;
+                    playerManager.fanHappiness = Math.min(100, playerManager.fanHappiness + 10);
+                    playerTeam.form = Math.min(3, playerTeam.form + 1);
+                    showSuccessPopup('TV Promotion Success!', "The TV promotion has boosted team morale and fan excitement!");
+                    updateManagementUI();
+                }
+            });
+            document.getElementById('buy-newspaper-ad-btn').addEventListener('click', () => {
+                if (playerTeam.money >= 5000) {
+                    playerTeam.money -= 5000;
+                    playerManager.reputation += 1;
+                    showSuccessPopup('Media Feature!', "Your manager profile was featured in the local paper, boosting your reputation.");
+                    updateManagementUI();
+                }
+            });
+
+            // --- PAST CHAMPIONS SYSTEM ---
+            function populateChampionsView() {
+                const championsLeagueSelect = document.getElementById('champions-league-select');
+                const championsContent = document.getElementById('champions-content');
+
+                // Populate league selector
+                championsLeagueSelect.innerHTML = '<option value="">Select a league</option>';
+                Object.keys(pastChampions).forEach(leagueName => {
+                    if (pastChampions[leagueName].length > 0) {
+                        const option = document.createElement('option');
+                        option.value = leagueName;
+                        option.textContent = leagueName;
+                        championsLeagueSelect.appendChild(option);
+                    }
+                });
+
+                championsLeagueSelect.addEventListener('change', () => {
+                    const selectedLeague = championsLeagueSelect.value;
+                    if (selectedLeague && pastChampions[selectedLeague]) {
+                        displayChampionsHistory(selectedLeague);
+                    } else {
+                        championsContent.innerHTML = '';
+                    }
+                });
+            }
+
+            function displayChampionsHistory(leagueName) {
+                const championsContent = document.getElementById('champions-content');
+                const history = pastChampions[leagueName];
+
+                if (!history || history.length === 0) {
+                    championsContent.innerHTML = '<p>No championship history available.</p>';
+                    return;
+                }
+
+                let html = `<h5>${leagueName} - Championship History</h5>`;
+                html += '<table role="grid"><thead><tr><th>Season</th><th>🏆 Champion</th><th>🥈 Runner-up</th><th>🥉 Third Place</th><th>Pts</th></tr></thead><tbody>';
+
+                // Show most recent seasons first
+                const recentHistory = [...history].reverse();
+                recentHistory.forEach(season => {
+                    const championHighlight = season.champion === playerTeam.name ? 'class="player-team-highlight"' : '';
+                    const runnerUpHighlight = season.runnerUp === playerTeam.name ? 'class="player-team-highlight"' : '';
+                    const thirdHighlight = season.third === playerTeam.name ? 'class="player-team-highlight"' : '';
+
+                    html += `<tr>
+                        <td>Season ${season.season}</td>
+                        <td ${championHighlight}>${season.champion}</td>
+                        <td ${runnerUpHighlight}>${season.runnerUp}</td>
+                        <td ${thirdHighlight}>${season.third}</td>
+                        <td>${season.championPoints}</td>
+                    </tr>`;
+                });
+
+                html += '</tbody></table>';
+                championsContent.innerHTML = html;
+            }
+
+            initializeSelection();
+        });
+    </script>
+</body>
+
+</html>
