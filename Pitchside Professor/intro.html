@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pitchside Professor - Team Selection</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+    <div id="intro-page">
+        <section id="team-selection-section">
+            <hgroup>
+                <h1>Pitchside Professor</h1>
+                <p>Build your legacy from the ground up!</p>
+            </hgroup>
+
+            <!-- Cover manager image -->
+            <div id="intro-cover" style="text-align: center; margin: 2rem 0;">
+                <img src="images/cover manager.png" alt="Pitchside Professor Manager"
+                    style="max-width: 100%; height: auto; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+            </div>
+
+            <label for="league-select">1. Select a League</label>
+            <select id="league-select" required>
+                <option value="" disabled selected>--Please choose a league--</option>
+            </select>
+
+            <label for="team-select">2. Select Your Team</label>
+            <select id="team-select" required disabled>
+                <option>--Select a league first--</option>
+            </select>
+
+            <button id="start-game-btn" disabled>Start Season</button>
+        </section>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const leagues = {
+                "Celestial Super League": [{ name: "Quantum Rovers", baseStrength: 10 }, { name: "Nebula Nomads", baseStrength: 9 }, { name: "Orion Olympians", baseStrength: 9 }, { name: "Galaxy Gladiators", baseStrength: 8 }, { name: "Solar Flare FC", baseStrength: 7 }, { name: "Void Wanderers", baseStrength: 6 }, { name: "Pulsar Pioneers", baseStrength: 5 }, { name: "Comet Captains", baseStrength: 4 }],
+                "Clockwork Championship": [{ name: "Ironclad Internazionale", baseStrength: 10 }, { name: "Cogsworth City", baseStrength: 9 }, { name: "Dynamo Droids", baseStrength: 8 }, { name: "Steam-powered Strikers", baseStrength: 8 }, { name: "Automaton Athletic", baseStrength: 7 }, { name: "Geargrind Guild", baseStrength: 6 }, { name: "Piston Palace", baseStrength: 5 }, { name: "Rivet Rovers", baseStrength: 4 }],
+                "Gilded Gauntlet": [{ name: "Eldorado Empire", baseStrength: 10 }, { name: "Argentum Assembly", baseStrength: 9 }, { name: "Pyrite Pirates", baseStrength: 8 }, { name: "Sovereign Strikers", baseStrength: 7 }, { name: "Bullion Bulls", baseStrength: 7 }, { name: "Treasury Trojans", baseStrength: 6 }, { name: "Minted Monarchs", baseStrength: 5 }, { name: "Crown Jewels FC", baseStrength: 4 }],
+                "Jade Empire Division": [{ name: "Dragonstone Dynamos", baseStrength: 10 }, { name: "Emerald Pagodas", baseStrength: 9 }, { name: "Silent Shoguns", baseStrength: 8 }, { name: "Crimson Cranes", baseStrength: 7 }, { name: "Golden Lotus", baseStrength: 7 }, { name: "Jade Serpents", baseStrength: 6 }, { name: "Terracotta Titans", baseStrength: 5 }, { name: "Silk Road Wanderers", baseStrength: 4 }],
+                "Voodoo Premier League": [{ name: "Bayou Phantoms", baseStrength: 10 }, { name: "Spirit Strikers", baseStrength: 9 }, { name: "Juju Juggernauts", baseStrength: 8 }, { name: "Gris-Gris Guardians", baseStrength: 7 }, { name: "Hex Hunters", baseStrength: 7 }, { name: "Charm City FC", baseStrength: 6 }, { name: "Potion Makers", baseStrength: 5 }, { name: "Mystic Marauders", baseStrength: 4 }],
+                "Neon Nights League": [{ name: "Cyber Samurai", baseStrength: 10 }, { name: "Digital Dragons", baseStrength: 9 }, { name: "Pixel Pirates", baseStrength: 8 }, { name: "Code Crusaders", baseStrength: 7 }, { name: "Binary Bombers", baseStrength: 7 }, { name: "Data Demons", baseStrength: 6 }, { name: "Circuit Breakers", baseStrength: 5 }, { name: "Glitch Gladiators", baseStrength: 4 }],
+                "Elemental Championship": [{ name: "Inferno Titans", baseStrength: 10 }, { name: "Tsunami Tempest", baseStrength: 9 }, { name: "Thunder Bolts", baseStrength: 8 }, { name: "Earthquake United", baseStrength: 7 }, { name: "Blizzard Bombers", baseStrength: 7 }, { name: "Volcanic Vipers", baseStrength: 6 }, { name: "Cyclone Strikers", baseStrength: 5 }, { name: "Frost Giants", baseStrength: 4 }],
+                "Mythical Monsters League": [{ name: "Dragon Slayers", baseStrength: 10 }, { name: "Phoenix Rising", baseStrength: 9 }, { name: "Kraken Killers", baseStrength: 8 }, { name: "Griffin Guards", baseStrength: 7 }, { name: "Hydra Hunters", baseStrength: 7 }, { name: "Minotaur Maulers", baseStrength: 6 }, { name: "Chimera Champions", baseStrength: 5 }, { name: "Basilisk Brawlers", baseStrength: 4 }]
+            };
+
+            let selectedLeague = '';
+            let selectedTeam = '';
+
+            // Initialize league selector
+            const leagueSelect = document.getElementById('league-select');
+            Object.keys(leagues).forEach(league => {
+                const option = document.createElement('option');
+                option.value = league;
+                option.textContent = league;
+                leagueSelect.appendChild(option);
+            });
+
+            // League selection handler
+            leagueSelect.addEventListener('change', function () {
+                selectedLeague = this.value;
+                const teamSelect = document.getElementById('team-select');
+                teamSelect.innerHTML = '<option value="" disabled selected>--Please choose a team--</option>';
+                teamSelect.disabled = false;
+
+                leagues[selectedLeague].forEach(team => {
+                    const option = document.createElement('option');
+                    option.value = team.name;
+                    option.textContent = team.name;
+                    teamSelect.appendChild(option);
+                });
+
+                document.getElementById('start-game-btn').disabled = true;
+            });
+
+            // Team selection handler
+            document.getElementById('team-select').addEventListener('change', function () {
+                selectedTeam = this.value;
+                document.getElementById('start-game-btn').disabled = false;
+            });
+
+            // Start game handler
+            document.getElementById('start-game-btn').addEventListener('click', function () {
+                if (selectedLeague && selectedTeam) {
+                    // Store selections in localStorage
+                    localStorage.setItem('selectedLeague', selectedLeague);
+                    localStorage.setItem('selectedTeam', selectedTeam);
+
+                    // Redirect to main game
+                    window.location.href = 'index.html';
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

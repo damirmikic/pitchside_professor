@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pitchside Professor - Intro</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .intro-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .intro-video {
+            max-width: 800px;
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+        }
+
+        .intro-title {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .intro-subtitle {
+            font-size: 1.2em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .skip-button, .continue-button {
+            padding: 15px 30px;
+            font-size: 1.1em;
+            background: #ff6b35;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .skip-button:hover, .continue-button:hover {
+            background: #e55a2b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top: 5px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .intro-controls {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            .intro-title {
+                font-size: 2em;
+            }
+            
+            .intro-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="intro-container">
+        <h1 class="intro-title">Pitchside Professor</h1>
+        <p class="intro-subtitle">Welcome to the ultimate football management experience</p>
+        
+        <!-- Video placeholder - replace with your actual video -->
+        <video class="intro-video" id="introVideo" controls poster="images/video-poster.jpg">
+            <source src="videos/intro.mp4" type="video/mp4">
+            <source src="videos/intro.webm" type="video/webm">
+            Your browser does not support the video tag.
+        </video>
+        
+        <div class="loading-spinner" id="loadingSpinner"></div>
+        
+        <div class="intro-controls">
+            <button class="skip-button" onclick="skipIntro()">Skip Intro</button>
+            <button class="continue-button" onclick="continueToGame()" style="display: none;" id="continueBtn">Continue</button>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('introVideo');
+        const continueBtn = document.getElementById('continueBtn');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+
+        // Show continue button when video ends
+        video.addEventListener('ended', function() {
+            continueBtn.style.display = 'inline-block';
+        });
+
+        // Handle video loading
+        video.addEventListener('loadstart', function() {
+            loadingSpinner.style.display = 'block';
+        });
+
+        video.addEventListener('canplay', function() {
+            loadingSpinner.style.display = 'none';
+        });
+
+        function skipIntro() {
+            // Go directly to team selection
+            window.location.href = 'intro.html';
+        }
+
+        function continueToGame() {
+            // Go to team selection after video
+            window.location.href = 'intro.html';
+        }
+
+        // Auto-play video if supported (many browsers block this)
+        video.addEventListener('canplay', function() {
+            video.play().catch(function(error) {
+                console.log('Auto-play prevented:', error);
+            });
+        });
+    </script>
+</body>
+</html>
