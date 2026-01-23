@@ -3,10 +3,10 @@
  * Handles all financial operations including revenue, expenses, and sponsorships
  */
 
-import { gameState } from '../core/game-state.js';
-import { showAnimatedPopup, showWarningPopup, showSuccessPopup, closePopup } from '../ui/popup-manager.js';
-import { updateUI } from '../ui/ui-manager.js';
-import { showNotification } from '../ui/notification-manager.js';
+import { gameState } from '../core/state-manager.js';
+import { showAnimatedPopup, showWarningPopup, showSuccessPopup, closePopup } from '../ui/notification-system.js';
+import { updateUI } from '../ui/ui-controller.js';
+import { showNotification } from '../ui/notification-system.js';
 
 /**
  * Initialize the financial system

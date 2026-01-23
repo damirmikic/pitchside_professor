@@ -3,8 +3,8 @@
  * Handles manager lifestyle purchases and personal upgrades
  */
 
-import { gameState } from '../core/game-state.js';
-import { showNotification } from '../ui/notification-manager.js';
+import { gameState } from '../core/state-manager.js';
+import { showNotification } from '../ui/notification-system.js';
 
 /**
  * Initialize the lifestyle system
