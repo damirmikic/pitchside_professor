@@ -1,0 +1,2412 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pitchside Professor</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+</head>
+
+<body>
+    <!-- MOBILE MENU TOGGLE -->
+    <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()">☰</button>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <nav id="sidebar">
+        <div class="sidebar-header">
+            <h3>Pitchside Professor</h3>
+            <div class="manager-info">
+                <div class="manager-wealth">💰 $<span id="manager-wealth-display">50,000</span></div>
+                <div class="manager-reputation">⭐ <span id="manager-reputation-display">50</span></div>
+            </div>
+        </div>
+        
+        <ul class="sidebar-menu">
+            <li><a href="#" data-section="league-view" class="active">🏆 League</a></li>
+            <li><a href="#" data-section="fixtures-view">📅 Fixtures</a></li>
+            <li><a href="#" data-section="manager-view">👤 Manager</a></li>
+            <li><a href="#" data-section="club-view">🏢 Club</a></li>
+            <li><a href="#" data-section="fans-view">👥 Fans</a></li>
+            <li><a href="#" data-section="media-view">📺 Media</a></li>
+            <li><a href="#" data-section="preseason-view">🏃 Pre-Season</a></li>
+            <li><a href="#" data-section="world-view">🌍 World</a></li>
+            <li><a href="#" data-section="stadium-view">🏟️ Stadium</a></li>
+            <li><a href="#" data-section="lifestyle-view">🏠 Lifestyle</a></li>
+            <li><a href="#" data-section="transfers-view">🔄 Transfers</a></li>
+            <li><a href="#" data-section="training-view">⚽ Training</a></li>
+            <li><a href="#" data-section="news-view">📰 News</a></li>
+        </ul>
+        
+        <div class="sidebar-footer">
+            <div class="season-info">
+                <div>Season <span id="season-display">1</span></div>
+                <div>Matchday <span id="matchday-display">1</span></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <div id="main-content">
+        <div id="page-game"></div>
+        <main class="container">
+        <div id="game-column-left">
+            <section id="league-view" class="active">
+                <h2 id="managing-team-header" style="text-align: center;">Managing: [Team Name]</h2>
+                <div class="dice-container">
+                    <div id="dice1" class="dice">
+                        <div class="face front">0</div>
+                        <div class="face back">3</div>
+                        <div class="face right">1</div>
+                        <div class="face left">4</div>
+                        <div class="face top">2</div>
+                        <div class="face bottom">5</div>
+                    </div>
+                    <div id="dice2" class="dice">
+                        <div class="face front">0</div>
+                        <div class="face back">3</div>
+                        <div class="face right">1</div>
+                        <div class="face left">4</div>
+                        <div class="face top">2</div>
+                        <div class="face bottom">5</div>
+                    </div>
+                </div>
+                <h3 id="result-display">Select a tactic and play your first matchday!</h3>
+                <figure>
+                    <table id="league-table" role="grid">
+                        <thead>
+                            <tr>
+                                <th>Pos</th>
+                                <th>Team</th>
+                                <th>P</th>
+                                <th>W</th>
+                                <th>D</th>
+                                <th>L</th>
+                                <th>GF</th>
+                                <th>GA</th>
+                                <th>GD</th>
+                                <th>Pts</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body"></tbody>
+                    </table>
+                </figure>
+            </section>
+
+            <section id="champions-cup-view" style="display: none;">
+                <h2 style="text-align: center;">🏆 Champions Cup 🏆</h2>
+                <h3 id="champions-cup-stage-name" style="text-align: center;"></h3>
+                <div id="champions-cup-content"></div>
+                <div id="champions-cup-results"></div>
+            </section>
+
+            <!-- LIFESTYLE SECTION -->
+            <section id="lifestyle-view" style="display: none;">
+                <h2 style="text-align: center;">🏠 Manager Lifestyle</h2>
+                
+                <div class="lifestyle-grid">
+                    <div class="lifestyle-category">
+                        <h3>🏠 Housing</h3>
+                        <div class="lifestyle-items">
+                            <div class="lifestyle-item" data-item="apartment" data-cost="2000" data-reputation="5">
+                                <h4>City Apartment</h4>
+                                <p>$2,000/month - +5 Reputation</p>
+                                <button class="lifestyle-btn">Rent</button>
+                            </div>
+                            <div class="lifestyle-item" data-item="house" data-cost="5000" data-reputation="10">
+                                <h4>Suburban House</h4>
+                                <p>$5,000/month - +10 Reputation</p>
+                                <button class="lifestyle-btn">Buy</button>
+                            </div>
+                            <div class="lifestyle-item" data-item="mansion" data-cost="15000" data-reputation="25">
+                                <h4>Luxury Mansion</h4>
+                                <p>$15,000/month - +25 Reputation</p>
+                                <button class="lifestyle-btn">Buy</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="lifestyle-category">
+                        <h3>🚗 Transportation</h3>
+                        <div class="lifestyle-items">
+                            <div class="lifestyle-item" data-item="car" data-cost="800" data-reputation="3">
+                                <h4>Economy Car</h4>
+                                <p>$800/month - +3 Reputation</p>
+                                <button class="lifestyle-btn">Lease</button>
+                            </div>
+                            <div class="lifestyle-item" data-item="luxury_car" data-cost="2500" data-reputation="8">
+                                <h4>Luxury Car</h4>
+                                <p>$2,500/month - +8 Reputation</p>
+                                <button class="lifestyle-btn">Lease</button>
+                            </div>
+                            <div class="lifestyle-item" data-item="sports_car" data-cost="8000" data-reputation="20">
+                                <h4>Sports Car</h4>
+                                <p>$8,000/month - +20 Reputation</p>
+                                <button class="lifestyle-btn">Lease</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="lifestyle-category">
+                        <h3>🍽️ Dining & Entertainment</h3>
+                        <div class="lifestyle-items">
+                            <div class="lifestyle-item" data-item="dining" data-cost="500" data-reputation="2">
+                                <h4>Fine Dining</h4>
+                                <p>$500/month - +2 Reputation</p>
+                                <button class="lifestyle-btn">Subscribe</button>
+                            </div>
+                            <div class="lifestyle-item" data-item="entertainment" data-cost="1200" data-reputation="5">
+                                <h4>VIP Entertainment</h4>
+                                <p>$1,200/month - +5 Reputation</p>
+                                <button class="lifestyle-btn">Subscribe</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="current-lifestyle">
+                        <h3>Current Lifestyle</h3>
+                        <div id="current-lifestyle-items">
+                            <p>Living modestly...</p>
+                        </div>
+                        <div class="lifestyle-summary">
+                            <p>Monthly Cost: $<span id="lifestyle-monthly-cost">0</span></p>
+                            <p>Reputation Bonus: +<span id="lifestyle-reputation-bonus">0</span></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FIXTURES SECTION -->
+            <section id="fixtures-view" style="display: none;">
+                <h2 style="text-align: center;">📅 Fixtures & Results</h2>
+                <div id="fixtures-list"></div>
+            </section>
+
+            <!-- FINANCES SECTION -->
+            <section id="finances-view" style="display: none;">
+                <h2 style="text-align: center;">💰 Club Finances</h2>
+                <div class="finances-grid">
+                    <div class="finance-card">
+                        <h3>💰 Current Balance</h3>
+                        <p class="finance-amount">$<span id="club-balance-display">100,000</span></p>
+                    </div>
+                    <div class="finance-card">
+                        <h3>📊 Weekly Expenses</h3>
+                        <p class="finance-amount">$<span id="weekly-expenses-display">15,000</span></p>
+                    </div>
+                    <div class="finance-card">
+                        <h3>🎫 Season Ticket Revenue</h3>
+                        <p class="finance-amount">$<span id="season-ticket-revenue-display">0</span></p>
+                    </div>
+                    <div class="finance-card">
+                        <h3>📺 TV Revenue</h3>
+                        <p class="finance-amount">$<span id="tv-revenue-display">0</span></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STADIUM SECTION -->
+            <section id="stadium-view" style="display: none;">
+                <h2 style="text-align: center;">🏟️ Stadium Management</h2>
+                <div class="stadium-info">
+                    <h3>Current Capacity: <span id="stadium-capacity-display">1,000</span></h3>
+                    <div class="stadium-controls">
+                        <button id="expand-stadium-btn" class="stadium-btn">Expand Stadium</button>
+                        <button id="improve-facilities-btn" class="stadium-btn">Improve Facilities</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TRANSFERS SECTION -->
+            <section id="transfers-view" style="display: none;">
+                <h2 style="text-align: center;">🔄 Transfer Market</h2>
+                <div class="transfer-info">
+                    <h3>Transfer Budget: $<span id="transfer-budget-display">50,000</span></h3>
+                    <p>Transfer market coming soon...</p>
+                </div>
+            </section>
+
+            <!-- TRAINING SECTION -->
+            <section id="training-view" style="display: none;">
+                <h2 style="text-align: center;">⚽ Training Ground</h2>
+                <div class="training-info">
+                    <h3>Team Strength: <span id="team-strength-display">50</span></h3>
+                    <p>Training facilities coming soon...</p>
+                </div>
+            </section>
+
+            <!-- MANAGER SECTION -->
+            <section id="manager-view" style="display: none;">
+                <h2 style="text-align: center;">👤 Manager Profile</h2>
+                <div class="manager-profile">
+                    <div class="manager-stats">
+                        <div class="stat-card">
+                            <h3>💰 Personal Wealth</h3>
+                            <p class="stat-value">$<span id="manager-wealth-stat">50,000</span></p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>⭐ Reputation</h3>
+                            <p class="stat-value"><span id="manager-reputation-stat">50</span>/100</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>🔒 Job Security</h3>
+                            <p class="stat-value"><span id="manager-job-security-stat">75</span>%</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CLUB SECTION -->
+            <section id="club-view" style="display: none;">
+                <h2 style="text-align: center;">🏢 Club Information</h2>
+                <div class="club-info">
+                    <div class="club-stats">
+                        <div class="stat-card">
+                            <h3>💪 Team Strength</h3>
+                            <p class="stat-value"><span id="club-strength-stat">50</span></p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>🏟️ Stadium Capacity</h3>
+                            <p class="stat-value"><span id="club-capacity-stat">1,000</span></p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>💰 Club Finances</h3>
+                            <p class="stat-value">$<span id="club-finances-stat">100,000</span></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FANS SECTION -->
+            <section id="fans-view" style="display: none;">
+                <h2 style="text-align: center;">👥 Fan Management</h2>
+                <div class="fans-info">
+                    <div class="fan-stats">
+                        <div class="stat-card">
+                            <h3>😊 Fan Happiness</h3>
+                            <p class="stat-value"><span id="fan-happiness-stat">60</span>%</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>🎫 Season Tickets Sold</h3>
+                            <p class="stat-value"><span id="season-tickets-sold-stat">0</span></p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>💵 Ticket Prices</h3>
+                            <p class="stat-value">$<span id="ticket-price-stat">15</span></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MEDIA SECTION -->
+            <section id="media-view" style="display: none;">
+                <h2 style="text-align: center;">📺 Media Relations</h2>
+                <div class="media-info">
+                    <div class="media-content">
+                        <h3>📰 Recent Press Coverage</h3>
+                        <div id="press-coverage">
+                            <p>No recent press coverage...</p>
+                        </div>
+                        <h3>🎤 Press Conferences</h3>
+                        <button class="media-btn" onclick="holdPressConference()">Hold Press Conference</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PRE-SEASON SECTION -->
+            <section id="preseason-view" style="display: none;">
+                <h2 style="text-align: center;">🏃 Pre-Season Management</h2>
+                <div class="preseason-info">
+                    <div class="preseason-stats">
+                        <div class="stat-card">
+                            <h3>📅 Days Remaining</h3>
+                            <p class="stat-value"><span id="preseason-days-stat">14</span></p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>⚽ Friendlies Played</h3>
+                            <p class="stat-value"><span id="friendlies-played-stat">0</span>/3</p>
+                        </div>
+                        <div class="stat-card">
+                            <h3>💪 Team Fitness</h3>
+                            <p class="stat-value"><span id="team-fitness-stat">75</span>%</p>
+                        </div>
+                    </div>
+                    <div class="preseason-actions">
+                        <button class="preseason-btn" id="schedule-friendly-btn" onclick="scheduleFriendlyMatch()">Schedule Friendly Match</button>
+                        <button class="preseason-btn" id="play-friendly-btn" onclick="playFriendlyMatch()" style="display: none;">Play Friendly Match</button>
+                        <button class="preseason-btn" onclick="organizeTrainingCamp()">Training Camp</button>
+                        <button class="preseason-btn" onclick="advancePreSeasonDay()">Advance Day</button>
+                    </div>
+                    <div class="scheduled-matches" id="scheduled-matches-info">
+                        <h4>Scheduled Matches:</h4>
+                        <div id="scheduled-matches-list">No matches scheduled</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- WORLD SECTION -->
+            <section id="world-view" style="display: none;">
+                <h2 style="text-align: center;">🌍 World Football</h2>
+                <div class="world-info">
+                    <div class="world-leagues">
+                        <h3>🏆 Other Leagues</h3>
+                        <div id="world-leagues-list">
+                            <div class="league-card">
+                                <h4>Celestial Super League</h4>
+                                <p>8 teams competing for glory</p>
+                            </div>
+                            <div class="league-card">
+                                <h4>Clockwork Championship</h4>
+                                <p>Mechanical marvels battle it out</p>
+                            </div>
+                            <div class="league-card">
+                                <h4>Gilded Gauntlet</h4>
+                                <p>Golden teams seek riches</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- NEWS SECTION -->
+            <section id="news-view" style="display: none;">
+                <h2 style="text-align: center;">📰 Football News</h2>
+                <div id="news-content">
+                    <p>Stay tuned for the latest football news...</p>
+                </div>
+            </section>
+
+            <section id="management-section" class="control-card">
+                <div class="tabs">
+                    <button class="tab-link active" onclick="openTab(event, 'manager')">Manager</button>
+                    <button class="tab-link" onclick="openTab(event, 'club')">Club</button>
+                    <button class="tab-link" onclick="openTab(event, 'fans')">Fans & Media</button>
+                    <button class="tab-link" onclick="openTab(event, 'preseason')" id="preseason-tab"
+                        style="display: none;">Pre-Season</button>
+                    <button class="tab-link" onclick="openTab(event, 'world')">World</button>
+                </div>
+                <div id="manager" class="tab-content active">
+                    <div class="management-grid">
+                        <article><strong>Personal Wealth</strong>
+                            <p id="manager-wealth">$0</p>
+                        </article>
+                        <article><strong>Reputation</strong>
+                            <p id="manager-reputation">0</p>
+                        </article>
+                    </div>
+                    <label for="job-security-bar">Job Security</label>
+                    <div id="job-security-bar-container" class="bar-container">
+                        <div id="job-security-bar" class="bar"></div>
+                    </div>
+                    <h5>Manager Lifestyle</h5>
+                    <div id="lifestyle-items" class="management-grid"></div>
+                </div>
+                <div id="club" class="tab-content">
+                    <div class="management-grid">
+                        <article><strong>Club Finances</strong>
+                            <p id="club-finances">$0</p>
+                        </article>
+                        <article><strong>Team Strength</strong>
+                            <p id="club-strength">0</p>
+                        </article>
+                        <article><strong>Sponsorship</strong>
+                            <p id="sponsorship-info">No active deals</p>
+                        </article>
+                    </div>
+                    <h5>Club Development</h5>
+                    <div class="management-grid">
+                        <button id="upgrade-training-btn">Upgrade Training (Lvl 1)</button>
+                        <button id="upgrade-academy-btn">Upgrade Academy (Lvl 1)</button>
+                        <button id="seek-sponsorship-btn">Seek Sponsorship</button>
+                        <button id="financial-report-btn">Financial Report</button>
+                    </div>
+                    <hr>
+                    <h5>Stadium Development</h5>
+                    <div id="stadium-view">
+                        <img id="stadium-image" src="small stadium.png" alt="Stadium">
+                        <div id="hotspot-stand" class="hotspot">Expand</div>
+                        <div id="hotspot-concessions" class="hotspot">Food</div>
+                        <div id="hotspot-store" class="hotspot">Store</div>
+                    </div>
+                    <p id="stadium-info">Current Capacity: 0 | Level: Small</p>
+                </div>
+                <div id="fans" class="tab-content">
+                    <div class="management-grid">
+                        <article>
+                            <label for="fan-happiness-bar">Fan Happiness</label>
+                            <div id="fan-happiness-bar-container" class="bar-container">
+                                <div id="fan-happiness-bar" class="bar"></div>
+                            </div>
+                        </article>
+                        <article>
+                            <label for="season-ticket-price-slider">Season Ticket Price</label>
+                            <input type="range" min="50" max="200" value="100" id="season-ticket-price-slider">
+                            <span id="season-ticket-price-value">$100</span>
+                            <small id="season-tickets-info">Season tickets sold: 0/0</small>
+                        </article>
+                        <article>
+                            <label for="matchday-ticket-price-slider">Matchday Ticket Price</label>
+                            <input type="range" min="5" max="50" value="15" id="matchday-ticket-price-slider">
+                            <span id="matchday-ticket-price-value">$15</span>
+                        </article>
+                    </div>
+                    <h5>Fan Engagement & PR</h5>
+                    <div class="management-grid">
+                        <button id="run-radio-promo-btn">Radio Giveaway</button>
+                        <button id="run-tv-promo-btn">TV Promotion</button>
+                        <button id="buy-newspaper-ad-btn">Newspaper Ad</button>
+                    </div>
+                </div>
+                <div id="preseason" class="tab-content">
+                    <h3>Pre-Season Preparation</h3>
+                    <div class="management-grid">
+                        <article>
+                            <strong>Season Ticket Sales</strong>
+                            <p id="season-ticket-progress">Tickets Sold: 0 / 0</p>
+                            <div class="progress-bar">
+                                <div id="season-ticket-progress-bar" class="progress-fill" style="width: 0%"></div>
+                            </div>
+                            <p><small>Season tickets sell automatically during pre-season</small></p>
+                        </article>
+                        <article>
+                            <strong>Pre-Season Matches</strong>
+                            <p id="preseason-matches-info">Matches Played: 0 / 3</p>
+                            <button id="play-preseason-match-btn" class="btn btn-primary">Play Friendly
+                                Match</button>
+                            <p><small>Build team chemistry and fitness</small></p>
+                        </article>
+                        <article>
+                            <strong>Squad Preparation</strong>
+                            <p>Team Fitness: <span id="team-fitness">75%</span></p>
+                            <p>Team Chemistry: <span id="team-chemistry">60%</span></p>
+                            <button id="training-camp-btn" class="btn btn-secondary">Training Camp
+                                ($10,000)</button>
+                        </article>
+                        <article>
+                            <strong>Pre-Season Status</strong>
+                            <p id="preseason-days-left">Days until season: 14</p>
+                            <button id="advance-preseason-btn" class="btn btn-primary">Advance Day</button>
+                            <button id="start-season-btn" class="btn btn-success" style="display: none;">Start
+                                Season</button>
+                        </article>
+                    </div>
+                </div>
+                <div id="world" class="tab-content"></div>
+                <div class="tabs">
+                    <button class="tab-link active" onclick="openWorldTab(event, 'current-standings')">Current
+                        Standings</button>
+                    <button class="tab-link" onclick="openWorldTab(event, 'past-champions')">Past
+                        Champions</button>
+                </div>
+                <div id="current-standings" class="tab-content active">
+                    <h4>World League Standings</h4>
+                    <p><small>View final standings at the end of the season.</small></p>
+                    <select id="world-league-select"></select>
+                    <div id="world-leagues-content"></div>
+                </div>
+                <div id="past-champions" class="tab-content">
+                    <h4>Hall of Fame</h4>
+                    <p><small>Past champions from all leagues.</small></p>
+                    <select id="champions-league-select"></select>
+                    <div id="champions-content"></div>
+                </div>
+        </div>
+        </section>
+        </div>
+
+        <section id="fixtures-section">
+            <div class="control-card">
+                <h3 id="next-matchday-header">Next Matchday</h3>
+                <p id="next-match-display">Team A vs Team B</p>
+                <label for="tactic-select">Your Tactic</label>
+                <select id="tactic-select">
+                    <option value="balanced" selected>Balanced</option>
+                    <option value="attacking">Attacking</option>
+                    <option value="defensive">Defensive</option>
+                </select>
+                <button id="main-action-btn">Play Matchday</button>
+            </div>
+            <h2>Fixtures</h2>
+            <div id="fixtures-list" style="max-height: 60vh; overflow-y: auto;"></div>
+        </section>
+    </main>
+    </div>
+
+    <!-- PAGE 3: JOB BOARD -->
+    <div id="page-job-board" class="page">
+        <main class="container">
+            <hgroup>
+                <h1 id="job-board-title">The Job Board</h1>
+                <p id="job-board-subtitle">Your reputation is: <span id="job-board-reputation"></span></p>
+            </hgroup>
+            <div id="job-board-listings"></div>
+        </main>
+    </div>
+
+    <!-- MODALS -->
+    <div id="news-modal" class="modal">
+        <div class="modal-content">
+            <article class="newspaper-article">
+                <h4 id="news-title"></h4><strong>Matchday <span id="news-round-number"></span> Report</strong>
+                <h5 id="news-player-headline"></h5>
+                <p id="news-player-article"></p>
+            </article><button id="news-close-btn" style="margin-top: 1rem;">Continue</button>
+        </div>
+    </div>
+    <div id="end-season-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="champion-announcement"></h2>
+            <h3 id="champion-team-name"></h3>
+            <p id="season-summary"></p>
+            <div id="end-season-buttons"></div>
+        </div>
+    </div>
+    <div id="upgrade-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="upgrade-title"></h3>
+            <p id="upgrade-info"></p>
+            <p id="upgrade-cost"></p><button id="upgrade-confirm-btn">Upgrade</button><button id="upgrade-cancel-btn"
+                class="secondary">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // --- TABS ---
+        function openTab(evt, tabName) {
+            let i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) tabcontent[i].classList.remove("active");
+            tablinks = document.getElementsByClassName("tab-link");
+            for (i = 0; i < tablinks.length; i++) tablinks[i].classList.remove("active");
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+        }
+
+        function openWorldTab(evt, tabName) {
+            const worldTabContent = document.querySelectorAll('#world .tab-content');
+            const worldTabLinks = document.querySelectorAll('#world .tab-link');
+
+            worldTabContent.forEach(content => content.classList.remove("active"));
+            worldTabLinks.forEach(link => link.classList.remove("active"));
+
+            document.getElementById(tabName).classList.add("active");
+            evt.currentTarget.classList.add("active");
+
+            if (tabName === 'past-champions') {
+                populateChampionsView();
+            }
+        }
+
+        // --- ANIMATED POPUP FUNCTIONS ---
+        function showAnimatedPopup(title, message, type = 'info', buttons = null) {
+            const popup = document.createElement('div');
+            popup.className = 'animated-popup';
+
+            let typeClass = '';
+            if (type === 'success') typeClass = 'popup-success';
+            else if (type === 'warning') typeClass = 'popup-warning';
+            else if (type === 'error') typeClass = 'popup-error';
+
+            const defaultButtons = buttons || [{ text: 'OK', action: () => closePopup(popup) }];
+
+            const buttonHTML = defaultButtons.map(btn =>
+                `<button onclick="${btn.action.toString().replace('function', 'function temp')}; temp.call(this);">${btn.text}</button>`
+            ).join('');
+
+            popup.innerHTML = `
+                <div class="popup-content ${typeClass}">
+                    <h3>${title}</h3>
+                    <p>${message}</p>
+                    <div class="popup-buttons">
+                        ${buttonHTML}
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(popup);
+
+            // Store button actions on the popup element for access
+            defaultButtons.forEach((btn, index) => {
+                const buttonElement = popup.querySelectorAll('.popup-buttons button')[index];
+                buttonElement.onclick = () => {
+                    btn.action();
+                    closePopup(popup);
+                };
+            });
+
+            return popup;
+        }
+
+        function closePopup(popup) {
+            popup.style.animation = 'fadeIn 0.2s ease-out reverse';
+            setTimeout(() => {
+                if (popup.parentNode) {
+                    document.body.removeChild(popup);
+                }
+            }, 200);
+        }
+
+        function showSuccessPopup(title, message) {
+            return showAnimatedPopup(title, message, 'success');
+        }
+
+        function showWarningPopup(title, message) {
+            return showAnimatedPopup(title, message, 'warning');
+        }
+
+        function showErrorPopup(title, message) {
+            return showAnimatedPopup(title, message, 'error');
+        }
+
+        function showConfirmPopup(title, message, onConfirm, onCancel = null) {
+            const buttons = [
+                { text: 'Yes', action: onConfirm },
+                { text: 'No', action: onCancel || (() => { }) }
+            ];
+            return showAnimatedPopup(title, message, 'warning', buttons);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if team selection exists, otherwise redirect to intro
+            selectedLeague = localStorage.getItem('selectedLeague');
+            selectedTeam = localStorage.getItem('selectedTeam');
+            
+            if (!selectedLeague || !selectedTeam) {
+                window.location.href = 'intro.html';
+                return;
+            }
+
+            // Update team name in header immediately
+            document.getElementById('managing-team-header').textContent = `Managing: ${selectedTeam}`;
+            
+            const leagues = {
+                "Celestial Super League": [{ name: "Quantum Rovers", baseStrength: 10 }, { name: "Nebula Nomads", baseStrength: 9 }, { name: "Orion Olympians", baseStrength: 9 }, { name: "Galaxy Gladiators", baseStrength: 8 }, { name: "Solar Flare FC", baseStrength: 7 }, { name: "Void Wanderers", baseStrength: 6 }, { name: "Pulsar Pioneers", baseStrength: 5 }, { name: "Comet Captains", baseStrength: 4 }],
+                "Clockwork Championship": [{ name: "Ironclad Internazionale", baseStrength: 10 }, { name: "Cogsworth City", baseStrength: 9 }, { name: "Dynamo Droids", baseStrength: 8 }, { name: "Steam-powered Strikers", baseStrength: 8 }, { name: "Automaton Athletic", baseStrength: 7 }, { name: "Geargrind Guild", baseStrength: 6 }, { name: "Piston Palace", baseStrength: 5 }, { name: "Rivet Rovers", baseStrength: 4 }],
+                "Gilded Gauntlet": [{ name: "Eldorado Empire", baseStrength: 10 }, { name: "Argentum Assembly", baseStrength: 9 }, { name: "Pyrite Pirates", baseStrength: 8 }, { name: "Sovereign Strikers", baseStrength: 7 }, { name: "Bullion Bulls", baseStrength: 7 }, { name: "Treasury Trojans", baseStrength: 6 }, { name: "Minted Monarchs", baseStrength: 5 }, { name: "Crown Jewels FC", baseStrength: 4 }],
+                "Jade Empire Division": [{ name: "Dragonstone Dynamos", baseStrength: 10 }, { name: "Emerald Pagodas", baseStrength: 9 }, { name: "Silent Shoguns", baseStrength: 8 }, { name: "Crimson Cranes", baseStrength: 7 }, { name: "Golden Lotus", baseStrength: 7 }, { name: "Jade Serpents", baseStrength: 6 }, { name: "Terracotta Titans", baseStrength: 5 }, { name: "Silk Road Wanderers", baseStrength: 4 }],
+                "Voodoo Premier League": [{ name: "Bayou Phantoms", baseStrength: 10 }, { name: "Spirit Strikers", baseStrength: 9 }, { name: "Juju Juggernauts", baseStrength: 8 }, { name: "Gris-Gris Guardians", baseStrength: 7 }, { name: "Hex Hunters", baseStrength: 7 }, { name: "Charm City FC", baseStrength: 6 }, { name: "Potion Makers", baseStrength: 5 }, { name: "Mystic Marauders", baseStrength: 4 }],
+                "Neon Nights League": [{ name: "Cyber Samurai", baseStrength: 10 }, { name: "Digital Dragons", baseStrength: 9 }, { name: "Pixel Pirates", baseStrength: 8 }, { name: "Code Crusaders", baseStrength: 7 }, { name: "Binary Bombers", baseStrength: 7 }, { name: "Data Demons", baseStrength: 6 }, { name: "Circuit Breakers", baseStrength: 5 }, { name: "Glitch Gladiators", baseStrength: 4 }],
+                "Elemental Championship": [{ name: "Inferno Titans", baseStrength: 10 }, { name: "Tsunami Tempest", baseStrength: 9 }, { name: "Thunder Bolts", baseStrength: 8 }, { name: "Earthquake United", baseStrength: 7 }, { name: "Blizzard Bombers", baseStrength: 7 }, { name: "Volcanic Vipers", baseStrength: 6 }, { name: "Cyclone Strikers", baseStrength: 5 }, { name: "Frost Giants", baseStrength: 4 }],
+                "Mythical Monsters League": [{ name: "Dragon Slayers", baseStrength: 10 }, { name: "Phoenix Rising", baseStrength: 9 }, { name: "Kraken Killers", baseStrength: 8 }, { name: "Griffin Guards", baseStrength: 7 }, { name: "Hydra Hunters", baseStrength: 7 }, { name: "Minotaur Maulers", baseStrength: 6 }, { name: "Chimera Champions", baseStrength: 5 }, { name: "Basilisk Brawlers", baseStrength: 4 }]
+            };
+
+            // Game state variables
+            let currentSeason = 1;
+            let currentMatchday = 1;
+            let playerTeamData = null;
+            let isPreSeason = true;
+            let preSeasonData = {
+                daysLeft: 14,
+                matchesPlayed: 0,
+                maxMatches: 3,
+                teamFitness: 75,
+                teamChemistry: 60,
+                seasonTicketsSoldToday: 0,
+                scheduledMatches: [], // Array of scheduled friendly matches
+                nextMatchDay: null // Day when next match is scheduled
+            };
+            let leagueTable = [];
+            let fixtures = [];
+            let managerData = {
+                wealth: 50000,
+                reputation: 50,
+                jobSecurity: 75,
+                lifestyle: []
+            };
+            let clubData = {
+                finances: 100000,
+                strength: 50,
+                trainingLevel: 1,
+                academyLevel: 1,
+                stadiumLevel: 1,
+                stadiumCapacity: 500 + Math.floor(Math.random() * 1500), // 500-2000 range
+                sponsorship: null,
+                weeklyWages: 15000,
+                transferBudget: 50000,
+                seasonTicketRevenue: 0,
+                matchdayRevenue: 0,
+                tvRevenue: 0,
+                sponsorshipOffers: []
+            };
+            let fanData = {
+                happiness: 60,
+                seasonTicketPrice: 100,
+                matchdayTicketPrice: 15,
+                seasonTicketsSold: 0,
+                maxSeasonTickets: 2500
+            };
+
+            // Financial tracking
+            let financialHistory = {
+                weeklyExpenses: [],
+                seasonRevenue: 0,
+                lastWagePayment: 0
+            };
+
+            // Team selection is now handled in intro.html
+            // Game will auto-start with selected team data from localStorage
+
+            function startGame() {
+                // Add body class to indicate game has started
+                document.body.classList.add('game-started');
+
+                // Show game page (no need to hide selection page since it's in intro.html)
+                document.getElementById('page-game').classList.add('active');
+
+                // Remove inline styles that were hiding the game page
+                document.getElementById('page-game').style.display = '';
+                document.getElementById('page-game').style.visibility = '';
+
+                // Set up player team data
+                playerTeamData = leagues[selectedLeague].find(team => team.name === selectedTeam);
+                clubData.strength = playerTeamData.baseStrength * 10;
+
+                // Update header
+                document.getElementById('managing-team-header').textContent = `Managing: ${selectedTeam}`;
+
+                // Initialize league table
+                initializeLeagueTable();
+
+                // Initialize fixtures
+                generateFixtures();
+
+                // Initialize financial system
+                initializeFinancialSystem();
+
+                // Set up event listeners
+                setupEventListeners();
+
+                // Start in pre-season mode
+                startPreSeason();
+            }
+
+            function initializeLeagueTable() {
+                leagueTable = leagues[selectedLeague].map(team => ({
+                    name: team.name,
+                    played: 0,
+                    won: 0,
+                    drawn: 0,
+                    lost: 0,
+                    goalsFor: 0,
+                    goalsAgainst: 0,
+                    points: 0,
+                    strength: team.baseStrength,
+                    isPlayer: team.name === selectedTeam
+                }));
+
+                updateLeagueTable();
+            }
+
+            function updateLeagueTable() {
+                const tbody = document.getElementById('table-body');
+                tbody.innerHTML = '';
+
+                // Sort by points, then goal difference
+                leagueTable.sort((a, b) => {
+                    if (b.points !== a.points) return b.points - a.points;
+                    return (b.goalsFor - b.goalsAgainst) - (a.goalsFor - a.goalsAgainst);
+                });
+
+                leagueTable.forEach((team, index) => {
+                    const row = document.createElement('tr');
+                    if (team.isPlayer) {
+                        row.classList.add('player-team-highlight');
+                    }
+                    if (index === 0 && team.played === (leagueTable.length - 1) * 2) {
+                        row.classList.add('champion');
+                    }
+
+                    const goalDiff = team.goalsFor - team.goalsAgainst;
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${team.name}</td>
+                        <td>${team.played}</td>
+                        <td>${team.won}</td>
+                        <td>${team.drawn}</td>
+                        <td>${team.lost}</td>
+                        <td>${team.goalsFor}</td>
+                        <td>${team.goalsAgainst}</td>
+                        <td>${goalDiff > 0 ? '+' : ''}${goalDiff}</td>
+                        <td>${team.points}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+
+            function generateFixtures() {
+                fixtures = [];
+                const teams = leagues[selectedLeague];
+                const totalMatchdays = (teams.length - 1) * 2;
+
+                // Simple round-robin fixture generation
+                for (let matchday = 1; matchday <= totalMatchdays; matchday++) {
+                    const matchdayFixtures = [];
+                    for (let i = 0; i < teams.length / 2; i++) {
+                        const home = teams[i];
+                        const away = teams[teams.length - 1 - i];
+                        if (home && away) {
+                            matchdayFixtures.push({
+                                home: home.name,
+                                away: away.name,
+                                played: false,
+                                homeGoals: null,
+                                awayGoals: null
+                            });
+                        }
+                    }
+                    fixtures.push(matchdayFixtures);
+
+                    // Rotate teams for next matchday
+                    const lastTeam = teams.pop();
+                    teams.splice(1, 0, lastTeam);
+                }
+
+                updateFixturesDisplay();
+            }
+
+            function updateFixturesDisplay() {
+                const fixturesList = document.getElementById('fixtures-list');
+                fixturesList.innerHTML = '';
+
+                fixtures.forEach((matchdayFixtures, matchdayIndex) => {
+                    const matchdayDiv = document.createElement('div');
+                    matchdayDiv.innerHTML = `<h4>Matchday ${matchdayIndex + 1}</h4>`;
+
+                    matchdayFixtures.forEach(fixture => {
+                        const fixtureDiv = document.createElement('div');
+                        if (fixture.played) {
+                            fixtureDiv.innerHTML = `${fixture.home} ${fixture.homeGoals} - ${fixture.awayGoals} ${fixture.away}`;
+                        } else {
+                            fixtureDiv.innerHTML = `${fixture.home} vs ${fixture.away}`;
+                        }
+                        matchdayDiv.appendChild(fixtureDiv);
+                    });
+
+                    fixturesList.appendChild(matchdayDiv);
+                });
+
+                // Update next match display
+                const nextFixture = getNextPlayerFixture();
+                if (nextFixture) {
+                    document.getElementById('next-match-display').textContent =
+                        `${nextFixture.home} vs ${nextFixture.away}`;
+                    document.getElementById('next-matchday-header').textContent =
+                        `Next Matchday ${currentMatchday}`;
+                } else {
+                    document.getElementById('next-match-display').textContent = 'Season Complete';
+                    document.getElementById('next-matchday-header').textContent = 'Season Complete';
+                }
+            }
+
+            function getNextPlayerFixture() {
+                for (let matchdayFixtures of fixtures) {
+                    for (let fixture of matchdayFixtures) {
+                        if (!fixture.played &&
+                            (fixture.home === selectedTeam || fixture.away === selectedTeam)) {
+                            return fixture;
+                        }
+                    }
+                }
+                return null;
+            }
+
+            function setupEventListeners() {
+                // Main action button (Play Matchday)
+                document.getElementById('main-action-btn').addEventListener('click', playMatchday);
+
+                // Ticket price sliders
+                document.getElementById('season-ticket-price-slider').addEventListener('input', function () {
+                    fanData.seasonTicketPrice = parseInt(this.value);
+                    document.getElementById('season-ticket-price-value').textContent = `$${this.value}`;
+                    updateUI();
+                });
+
+                document.getElementById('matchday-ticket-price-slider').addEventListener('input', function () {
+                    fanData.matchdayTicketPrice = parseInt(this.value);
+                    document.getElementById('matchday-ticket-price-value').textContent = `$${this.value}`;
+                    updateUI();
+                });
+
+                // Club development buttons
+                document.getElementById('upgrade-training-btn').addEventListener('click', () => upgradeTraining());
+                document.getElementById('upgrade-academy-btn').addEventListener('click', () => upgradeAcademy());
+                document.getElementById('seek-sponsorship-btn').addEventListener('click', () => showSponsorshipOffers());
+                document.getElementById('financial-report-btn').addEventListener('click', () => showFinancialReport());
+
+                // Fan engagement buttons
+                document.getElementById('run-radio-promo-btn').addEventListener('click', () => runPromotion('radio'));
+                document.getElementById('run-tv-promo-btn').addEventListener('click', () => runPromotion('tv'));
+                document.getElementById('buy-newspaper-ad-btn').addEventListener('click', () => runPromotion('newspaper'));
+
+                // Stadium hotspot buttons
+                document.getElementById('hotspot-stand').addEventListener('click', () => expandStadium());
+                document.getElementById('hotspot-concessions').addEventListener('click', () => upgradeConcessions());
+                document.getElementById('hotspot-store').addEventListener('click', () => upgradeStore());
+
+                // Modal close buttons
+                document.getElementById('news-close-btn').addEventListener('click', () => closeNewsModal());
+
+                // Pre-season buttons
+                document.getElementById('play-preseason-match-btn').addEventListener('click', () => playPreSeasonMatch());
+                document.getElementById('training-camp-btn').addEventListener('click', () => runTrainingCamp());
+                document.getElementById('advance-preseason-btn').addEventListener('click', () => advancePreSeasonDay());
+                document.getElementById('start-season-btn').addEventListener('click', () => finishPreSeason());
+            }
+
+            function playMatchday() {
+                const nextFixture = getNextPlayerFixture();
+                if (!nextFixture) {
+                    showWarningPopup('Season Complete', 'All matches have been played!');
+                    return;
+                }
+
+                const tactic = document.getElementById('tactic-select').value;
+
+                // Show dice animation first
+                animateDiceRoll(() => {
+                    // Simulate player match
+                    const result = simulateMatch(nextFixture, tactic);
+
+                    // Show dice results
+                    updateDiceDisplay(result.homeGoals, result.awayGoals);
+
+                    // Simulate other matches in the same matchday
+                    const currentMatchdayIndex = fixtures.findIndex(matchdayFixtures =>
+                        matchdayFixtures.includes(nextFixture));
+
+                    fixtures[currentMatchdayIndex].forEach(fixture => {
+                        if (!fixture.played) {
+                            simulateMatch(fixture);
+                        }
+                    });
+
+                    // Calculate matchday revenue
+                    const matchdayFinancials = calculateMatchdayRevenue();
+
+                    // Process weekly wages (if due)
+                    processWeeklyWages();
+
+                    // Check for financial takeover (rare event)
+                    triggerFinancialTakeover();
+
+                    // Update displays
+                    updateLeagueTable();
+                    updateFixturesDisplay();
+                    updateUI();
+
+                    // Show match result after a delay
+                    setTimeout(() => {
+                        showMatchResult(result, matchdayFinancials);
+                    }, 1500);
+
+                    currentMatchday++;
+
+                    // Check if season is complete
+                    if (isSeasonComplete()) {
+                        setTimeout(() => {
+                            endSeason();
+                        }, 3000);
+                    }
+                });
+            }
+
+            function animateDiceRoll(callback) {
+                const dice1 = document.getElementById('dice1');
+                const dice2 = document.getElementById('dice2');
+
+                // Add rolling animation
+                dice1.classList.add('rolling');
+                dice2.classList.add('rolling');
+
+                // Update result display
+                document.getElementById('result-display').textContent = 'Rolling dice...';
+
+                // Remove animation and execute callback after animation
+                setTimeout(() => {
+                    dice1.classList.remove('rolling');
+                    dice2.classList.remove('rolling');
+                    callback();
+                }, 1000);
+            }
+
+            function updateDiceDisplay(homeGoals, awayGoals) {
+                // Update dice faces to show the rolled values
+                const dice1Faces = document.querySelectorAll('#dice1 .face');
+                const dice2Faces = document.querySelectorAll('#dice2 .face');
+
+                // Set all faces of dice1 to show home team goals
+                dice1Faces.forEach(face => {
+                    face.textContent = homeGoals;
+                });
+
+                // Set all faces of dice2 to show away team goals
+                dice2Faces.forEach(face => {
+                    face.textContent = awayGoals;
+                });
+            }
+
+            // Weighted dice function (0-5, weighted toward lower values)
+            function rollWeightedDice() {
+                const weights = [35, 25, 20, 10, 7, 3]; // Percentages for 0,1,2,3,4,5
+                const random = Math.random() * 100;
+                let cumulative = 0;
+
+                for (let i = 0; i < weights.length; i++) {
+                    cumulative += weights[i];
+                    if (random <= cumulative) {
+                        return i;
+                    }
+                }
+                return 0; // Fallback
+            }
+
+            function simulateMatch(fixture, playerTactic = null) {
+                const homeTeam = leagueTable.find(team => team.name === fixture.home);
+                const awayTeam = leagueTable.find(team => team.name === fixture.away);
+
+                // Roll dice for each team (0-5)
+                let homeDice = rollWeightedDice();
+                let awayDice = rollWeightedDice();
+
+                // Apply team strength modifier (stronger teams get slight bonus)
+                const homeStrengthBonus = Math.floor(homeTeam.strength / 20); // 0-0.5 bonus
+                const awayStrengthBonus = Math.floor(awayTeam.strength / 20);
+
+                homeDice = Math.min(5, homeDice + (Math.random() < homeStrengthBonus / 10 ? 1 : 0));
+                awayDice = Math.min(5, awayDice + (Math.random() < awayStrengthBonus / 10 ? 1 : 0));
+
+                // Apply player tactic bonus
+                if (playerTactic && (fixture.home === selectedTeam || fixture.away === selectedTeam)) {
+                    const isHome = fixture.home === selectedTeam;
+
+                    if (playerTactic === 'attacking') {
+                        // Attacking: +1 to own goals
+                        if (isHome) {
+                            homeDice = Math.min(5, homeDice + 1);
+                        } else {
+                            awayDice = Math.min(5, awayDice + 1);
+                        }
+                    } else if (playerTactic === 'defensive') {
+                        // Defensive: -1 to opponent's goals (minimum 0)
+                        if (isHome) {
+                            awayDice = Math.max(0, awayDice - 1);
+                        } else {
+                            homeDice = Math.max(0, homeDice - 1);
+                        }
+                    }
+                    // Balanced: no modification
+                }
+
+                // Goals are the dice values
+                const homeGoals = homeDice;
+                const awayGoals = awayDice;
+
+                fixture.homeGoals = homeGoals;
+                fixture.awayGoals = awayGoals;
+                fixture.played = true;
+
+                // Update league table
+                homeTeam.played++;
+                awayTeam.played++;
+                homeTeam.goalsFor += homeGoals;
+                homeTeam.goalsAgainst += awayGoals;
+                awayTeam.goalsFor += awayGoals;
+                awayTeam.goalsAgainst += homeGoals;
+
+                if (homeGoals > awayGoals) {
+                    homeTeam.won++;
+                    homeTeam.points += 3;
+                    awayTeam.lost++;
+                } else if (awayGoals > homeGoals) {
+                    awayTeam.won++;
+                    awayTeam.points += 3;
+                    homeTeam.lost++;
+                } else {
+                    homeTeam.drawn++;
+                    awayTeam.drawn++;
+                    homeTeam.points++;
+                    awayTeam.points++;
+                }
+
+                return {
+                    fixture: fixture,
+                    homeGoals: homeGoals,
+                    awayGoals: awayGoals,
+                    isPlayerMatch: fixture.home === selectedTeam || fixture.away === selectedTeam
+                };
+            }
+
+            function getTacticBonus(tactic) {
+                switch (tactic) {
+                    case 'attacking': return 1; // +1 to dice roll
+                    case 'defensive': return 0; // No bonus, but reduces opponent's chance
+                    case 'balanced':
+                    default: return 0; // No bonus
+                }
+            }
+
+            function showMatchResult(result) {
+                const { fixture, homeGoals, awayGoals, isPlayerMatch } = result;
+
+                if (isPlayerMatch) {
+                    const isWin = (fixture.home === selectedTeam && homeGoals > awayGoals) ||
+                        (fixture.away === selectedTeam && awayGoals > homeGoals);
+                    const isDraw = homeGoals === awayGoals;
+
+                    let title, message, type;
+
+                    if (isWin) {
+                        title = 'Victory!';
+                        message = `${fixture.home} ${homeGoals} - ${awayGoals} ${fixture.away}`;
+                        type = 'success';
+                        managerData.reputation += 2;
+                        managerData.jobSecurity = Math.min(100, managerData.jobSecurity + 5);
+                        fanData.happiness = Math.min(100, fanData.happiness + 10);
+                    } else if (isDraw) {
+                        title = 'Draw';
+                        message = `${fixture.home} ${homeGoals} - ${awayGoals} ${fixture.away}`;
+                        type = 'warning';
+                        managerData.reputation += 1;
+                        fanData.happiness = Math.max(0, fanData.happiness - 2);
+                    } else {
+                        title = 'Defeat';
+                        message = `${fixture.home} ${homeGoals} - ${awayGoals} ${fixture.away}`;
+                        type = 'error';
+                        managerData.reputation = Math.max(0, managerData.reputation - 1);
+                        managerData.jobSecurity = Math.max(0, managerData.jobSecurity - 3);
+                        fanData.happiness = Math.max(0, fanData.happiness - 5);
+                    }
+
+                    showAnimatedPopup(title, message, type);
+
+                    // Show manager reading newspaper sequence, then the actual newspaper
+                    setTimeout(() => {
+                        showManagerReadingNewspaper(() => {
+                            showNewsModal({
+                                isWin: isWin,
+                                isDraw: isDraw,
+                                fixture: fixture,
+                                homeGoals: homeGoals,
+                                awayGoals: awayGoals
+                            });
+                        });
+                    }, 2000);
+                }
+
+                // Update result display
+                document.getElementById('result-display').textContent =
+                    `${fixture.home} ${homeGoals} - ${awayGoals} ${fixture.away}`;
+            }
+
+            function upgradeTraining() {
+                const cost = clubData.trainingLevel * 50000;
+                if (clubData.finances >= cost) {
+                    showConfirmPopup(
+                        'Upgrade Training',
+                        `Upgrade training facilities to level ${clubData.trainingLevel + 1} for $${cost.toLocaleString()}?`,
+                        () => {
+                            clubData.finances -= cost;
+                            clubData.trainingLevel++;
+                            clubData.strength += 5;
+                            document.getElementById('upgrade-training-btn').textContent =
+                                `Upgrade Training (Lvl ${clubData.trainingLevel})`;
+                            updateUI();
+                            showSuccessPopup('Training Upgraded!', 'Team strength increased by 5 points.');
+                        }
+                    );
+                } else {
+                    showErrorPopup('Insufficient Funds', `You need $${cost.toLocaleString()} to upgrade training.`);
+                }
+            }
+
+            function upgradeAcademy() {
+                const cost = clubData.academyLevel * 75000;
+                if (clubData.finances >= cost) {
+                    showConfirmPopup(
+                        'Upgrade Academy',
+                        `Upgrade youth academy to level ${clubData.academyLevel + 1} for $${cost.toLocaleString()}?`,
+                        () => {
+                            clubData.finances -= cost;
+                            clubData.academyLevel++;
+                            managerData.reputation += 3;
+                            document.getElementById('upgrade-academy-btn').textContent =
+                                `Upgrade Academy (Lvl ${clubData.academyLevel})`;
+                            updateUI();
+                            showSuccessPopup('Academy Upgraded!', 'Reputation increased and future talent improved.');
+                        }
+                    );
+                } else {
+                    showErrorPopup('Insufficient Funds', `You need $${cost.toLocaleString()} to upgrade the academy.`);
+                }
+            }
+
+            function seekSponsorship() {
+                if (clubData.sponsorship) {
+                    showWarningPopup('Already Sponsored', 'You already have an active sponsorship deal.');
+                    return;
+                }
+
+                const sponsorshipValue = Math.floor(Math.random() * 100000) + 50000;
+                showConfirmPopup(
+                    'Sponsorship Offer',
+                    `A sponsor is offering $${sponsorshipValue.toLocaleString()} per season. Accept?`,
+                    () => {
+                        clubData.sponsorship = sponsorshipValue;
+                        clubData.finances += sponsorshipValue;
+                        document.getElementById('sponsorship-info').textContent =
+                            `$${sponsorshipValue.toLocaleString()} per season`;
+                        updateUI();
+                        showSuccessPopup('Sponsorship Signed!', `You've secured a $${sponsorshipValue.toLocaleString()} sponsorship deal.`);
+                    }
+                );
+            }
+
+            function runPromotion(type) {
+                const costs = { radio: 5000, tv: 15000, newspaper: 8000 };
+                const effects = { radio: 5, tv: 15, newspaper: 8 };
+                const cost = costs[type];
+                const effect = effects[type];
+
+                if (clubData.finances >= cost) {
+                    showConfirmPopup(
+                        `${type.charAt(0).toUpperCase() + type.slice(1)} Promotion`,
+                        `Run a ${type} promotion for $${cost.toLocaleString()}? This will increase fan happiness by ${effect} points.`,
+                        () => {
+                            clubData.finances -= cost;
+                            fanData.happiness = Math.min(100, fanData.happiness + effect);
+                            updateUI();
+                            showSuccessPopup('Promotion Successful!', `Fan happiness increased by ${effect} points.`);
+                        }
+                    );
+                } else {
+                    showErrorPopup('Insufficient Funds', `You need $${cost.toLocaleString()} for this promotion.`);
+                }
+            }
+
+            function updateUI() {
+                // Manager stats
+                document.getElementById('manager-wealth').textContent = `$${managerData.wealth.toLocaleString()}`;
+                document.getElementById('manager-reputation').textContent = managerData.reputation;
+
+                // Job security bar
+                const jobSecurityBar = document.getElementById('job-security-bar');
+                jobSecurityBar.style.width = `${managerData.jobSecurity}%`;
+                jobSecurityBar.textContent = `${managerData.jobSecurity}%`;
+
+                // Set bar color based on job security level
+                if (managerData.jobSecurity >= 70) {
+                    jobSecurityBar.style.backgroundColor = 'var(--job-security-high)';
+                } else if (managerData.jobSecurity >= 40) {
+                    jobSecurityBar.style.backgroundColor = 'var(--job-security-medium)';
+                } else {
+                    jobSecurityBar.style.backgroundColor = 'var(--job-security-low)';
+                }
+
+                // Club stats
+                document.getElementById('club-finances').textContent = `$${clubData.finances.toLocaleString()}`;
+                document.getElementById('club-strength').textContent = clubData.strength;
+
+                // Fan happiness bar
+                const fanHappinessBar = document.getElementById('fan-happiness-bar');
+                fanHappinessBar.style.width = `${fanData.happiness}%`;
+                fanHappinessBar.textContent = `${fanData.happiness}%`;
+
+                // Set fan happiness bar color
+                if (fanData.happiness >= 70) {
+                    fanHappinessBar.style.backgroundColor = 'var(--job-security-high)';
+                } else if (fanData.happiness >= 40) {
+                    fanHappinessBar.style.backgroundColor = 'var(--job-security-medium)';
+                } else {
+                    fanHappinessBar.style.backgroundColor = 'var(--job-security-low)';
+                }
+
+                // Stadium info
+                document.getElementById('stadium-info').textContent =
+                    `Current Capacity: ${clubData.stadiumCapacity.toLocaleString()} | Level: ${getStadiumLevelName()}`;
+
+                // Update season ticket info
+                updateSeasonTicketDisplay();
+
+                // Update financial displays
+                const seasonTicketValue = document.getElementById('season-ticket-price-value');
+                const matchdayTicketValue = document.getElementById('matchday-ticket-price-value');
+
+                if (seasonTicketValue) seasonTicketValue.textContent = `$${fanData.seasonTicketPrice}`;
+                if (matchdayTicketValue) matchdayTicketValue.textContent = `$${fanData.matchdayTicketPrice}`;
+            }
+
+            function getStadiumLevelName() {
+                switch (clubData.stadiumLevel) {
+                    case 1: return 'Small';
+                    case 2: return 'Medium';
+                    case 3: return 'Large';
+                    case 4: return 'Elite';
+                    default: return 'Small';
+                }
+            }
+
+            // Initialize world leagues for the World tab
+            function populateChampionsView() {
+                // This would be populated with historical data
+                const championsContent = document.getElementById('champions-content');
+                championsContent.innerHTML = '<p>No champions data available yet. Complete a season to see results!</p>';
+            }
+
+            // Stadium upgrade functions
+            function expandStadium() {
+                const cost = clubData.stadiumLevel * 50000; // Reduced cost for smaller stadiums
+                const expansionSize = clubData.stadiumLevel <= 3 ? 1000 : 2000; // Smaller expansions initially
+                const newCapacity = clubData.stadiumCapacity + expansionSize;
+
+                if (clubData.finances >= cost) {
+                    showConfirmPopup(
+                        'Expand Stadium',
+                        `Expand stadium capacity to ${newCapacity.toLocaleString()} for $${cost.toLocaleString()}?`,
+                        () => {
+                            clubData.finances -= cost;
+                            clubData.stadiumLevel++;
+                            clubData.stadiumCapacity = newCapacity;
+                            managerData.reputation += 5;
+                            fanData.happiness = Math.min(100, fanData.happiness + 15);
+
+                            // Update stadium image based on level
+                            const stadiumImage = document.getElementById('stadium-image');
+                            if (clubData.stadiumLevel >= 4) {
+                                stadiumImage.src = 'elite stadium.png';
+                            } else if (clubData.stadiumLevel >= 3) {
+                                stadiumImage.src = 'large stadium.png';
+                            } else if (clubData.stadiumLevel >= 2) {
+                                stadiumImage.src = 'medium stadium.png';
+                            }
+
+                            updateUI();
+                            showSuccessPopup('Stadium Expanded!', `Capacity increased to ${newCapacity.toLocaleString()}. Fan happiness and reputation increased!`);
+                        }
+                    );
+                } else {
+                    showErrorPopup('Insufficient Funds', `You need $${cost.toLocaleString()} to expand the stadium.`);
+                }
+            }
+
+            function upgradeConcessions() {
+                const cost = 75000;
+
+                if (clubData.finances >= cost) {
+                    showConfirmPopup(
+                        'Upgrade Concessions',
+                        `Upgrade food and beverage facilities for $${cost.toLocaleString()}? This will increase matchday revenue.`,
+                        () => {
+                            clubData.finances -= cost;
+                            fanData.happiness = Math.min(100, fanData.happiness + 8);
+                            managerData.wealth += 25000; // Increased revenue
+                            updateUI();
+                            showSuccessPopup('Concessions Upgraded!', 'Fan happiness increased and matchday revenue improved!');
+                        }
+                    );
+                } else {
+                    showErrorPopup('Insufficient Funds', `You need $${cost.toLocaleString()} to upgrade concessions.`);
+                }
+            }
+
+            function upgradeStore() {
+                const cost = 50000;
+
+                if (clubData.finances >= cost) {
+                    showConfirmPopup(
+                        'Upgrade Club Store',
+                        `Upgrade the club merchandise store for $${cost.toLocaleString()}? This will increase merchandise revenue.`,
+                        () => {
+                            clubData.finances -= cost;
+                            managerData.wealth += 15000; // Merchandise revenue
+                            fanData.happiness = Math.min(100, fanData.happiness + 5);
+                            updateUI();
+                            showSuccessPopup('Store Upgraded!', 'Merchandise revenue increased and fan happiness improved!');
+                        }
+                    );
+                } else {
+                    showErrorPopup('Insufficient Funds', `You need $${cost.toLocaleString()} to upgrade the store.`);
+                }
+            }
+
+            // ===== FINANCIAL MANAGEMENT SYSTEM =====
+
+            function initializeFinancialSystem() {
+                // Calculate initial season ticket sales
+                calculateSeasonTicketSales();
+
+                // Generate initial sponsorship offers
+                generateSponsorshipOffers();
+
+                // Set up weekly wage payments
+                financialHistory.lastWagePayment = Date.now();
+            }
+
+            function calculateSeasonTicketSales() {
+                // Season ticket sales based on fan happiness and price
+                const priceEffect = Math.max(0.2, 1 - (fanData.seasonTicketPrice - 50) / 200);
+                const happinessEffect = fanData.happiness / 100;
+                const capacityEffect = Math.min(1, clubData.stadiumCapacity / 10000);
+
+                fanData.maxSeasonTickets = Math.floor(clubData.stadiumCapacity * 0.5 * capacityEffect);
+                fanData.seasonTicketsSold = Math.floor(fanData.maxSeasonTickets * priceEffect * happinessEffect);
+
+                clubData.seasonTicketRevenue = fanData.seasonTicketsSold * fanData.seasonTicketPrice;
+                clubData.finances += clubData.seasonTicketRevenue;
+
+                updateSeasonTicketDisplay();
+            }
+
+            function updateSeasonTicketDisplay() {
+                const seasonTicketsInfo = document.getElementById('season-tickets-info');
+                if (seasonTicketsInfo) {
+                    seasonTicketsInfo.textContent = `Season tickets sold: ${fanData.seasonTicketsSold.toLocaleString()}/${fanData.maxSeasonTickets.toLocaleString()}`;
+                }
+            }
+
+            function generateSponsorshipOffers() {
+                clubData.sponsorshipOffers = [];
+
+                // Generate 3-4 random sponsorship offers
+                const numOffers = 3 + Math.floor(Math.random() * 2);
+                const sponsors = [
+                    { name: "TechCorp Industries", type: "Technology" },
+                    { name: "SportMax Equipment", type: "Sports" },
+                    { name: "Global Bank United", type: "Financial" },
+                    { name: "Energy Plus Solutions", type: "Energy" },
+                    { name: "Fashion Forward Brands", type: "Lifestyle" },
+                    { name: "Auto Drive Motors", type: "Automotive" },
+                    { name: "MegaFood Restaurants", type: "Food & Beverage" },
+                    { name: "CloudTech Solutions", type: "Software" }
+                ];
+
+                for (let i = 0; i < numOffers; i++) {
+                    const sponsor = sponsors[Math.floor(Math.random() * sponsors.length)];
+                    const basePayment = 25000 + Math.floor(Math.random() * 100000);
+                    const performanceBonus = Math.floor(basePayment * (0.5 + Math.random() * 1));
+
+                    clubData.sponsorshipOffers.push({
+                        id: i,
+                        name: sponsor.name,
+                        type: sponsor.type,
+                        basePayment: basePayment,
+                        performanceBonus: performanceBonus,
+                        bonusCondition: Math.random() > 0.5 ? "league_win" : "top_3"
+                    });
+                }
+            }
+
+            function showSponsorshipOffers() {
+                if (clubData.sponsorship) {
+                    showWarningPopup('Already Sponsored', 'You already have an active sponsorship deal. Wait until next season for new offers.');
+                    return;
+                }
+
+
+
+                // Create a dedicated sponsorship modal
+                const modal = document.createElement('div');
+                modal.className = 'sponsorship-modal';
+                modal.innerHTML = `
+                    <div class="sponsorship-modal-content">
+                        <div class="sponsorship-header">
+                            <h2>Sponsorship Offers - Season ${currentSeason}</h2>
+                            <button class="close-sponsorship-modal">&times;</button>
+                        </div>
+                        <div class="sponsorship-offers-list">
+                            ${generateSponsorshipOffersHTML()}
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+
+                // Add event listeners
+                modal.querySelector('.close-sponsorship-modal').addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                });
+
+                // Add click outside to close
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        document.body.removeChild(modal);
+                    }
+                });
+
+                // Add event listeners for accept buttons
+                modal.querySelectorAll('.accept-offer-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const offerId = parseInt(e.target.dataset.offerId);
+                        acceptSponsorshipOffer(offerId);
+                        document.body.removeChild(modal);
+                    });
+                });
+            }
+
+            function generateSponsorshipOffersHTML() {
+                return clubData.sponsorshipOffers.map(offer => {
+                    const conditionText = offer.bonusCondition === "league_win" ? "Win the League" : "Finish Top 3";
+                    return `
+                        <div class="sponsorship-offer-card">
+                            <div class="offer-header">
+                                <h3>${offer.name}</h3>
+                                <span class="offer-type">${offer.type}</span>
+                            </div>
+                            <div class="offer-details">
+                                <div class="offer-row">
+                                    <span class="label">Base Payment:</span>
+                                    <span class="value">$${offer.basePayment.toLocaleString()}</span>
+                                </div>
+                                <div class="offer-row">
+                                    <span class="label">Performance Bonus:</span>
+                                    <span class="value">$${offer.performanceBonus.toLocaleString()}</span>
+                                </div>
+                                <div class="offer-row">
+                                    <span class="label">Bonus Condition:</span>
+                                    <span class="value">${conditionText}</span>
+                                </div>
+                                <div class="offer-total">
+                                    <span class="label">Potential Total:</span>
+                                    <span class="value total-amount">$${(offer.basePayment + offer.performanceBonus).toLocaleString()}</span>
+                                </div>
+                            </div>
+                            <button class="accept-offer-btn btn btn-primary" data-offer-id="${offer.id}">
+                                Accept Offer
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            function acceptSponsorshipOffer(offerId) {
+                const offer = clubData.sponsorshipOffers.find(o => o.id === offerId);
+                if (offer) {
+                    clubData.sponsorship = offer;
+                    clubData.finances += offer.basePayment;
+
+                    document.getElementById('sponsorship-info').textContent =
+                        `${offer.name} - $${offer.basePayment.toLocaleString()} + bonuses`;
+
+                    updateUI();
+                    showSuccessPopup('Sponsorship Signed!',
+                        `You've signed with ${offer.name} for $${offer.basePayment.toLocaleString()} plus performance bonuses!`);
+
+                    // Close any open popups
+                    const popups = document.querySelectorAll('.animated-popup');
+                    popups.forEach(popup => closePopup(popup));
+                }
+            }
+
+            function processWeeklyWages() {
+                const now = Date.now();
+                const weekInMs = 7 * 24 * 60 * 60 * 1000;
+
+                if (now - financialHistory.lastWagePayment >= weekInMs) {
+                    clubData.finances -= clubData.weeklyWages;
+                    financialHistory.lastWagePayment = now;
+                    financialHistory.weeklyExpenses.push({
+                        date: new Date(),
+                        amount: clubData.weeklyWages,
+                        type: 'wages'
+                    });
+
+                    showNotification('Weekly Wages', `$${clubData.weeklyWages.toLocaleString()} paid in player wages`, 'warning');
+                    updateUI();
+                }
+            }
+
+            function calculateMatchdayRevenue() {
+                const attendance = Math.floor(clubData.stadiumCapacity * (0.6 + (fanData.happiness / 100) * 0.4));
+                const ticketRevenue = attendance * fanData.matchdayTicketPrice;
+                const concessionRevenue = attendance * 5; // $5 per person average
+
+                clubData.matchdayRevenue = ticketRevenue + concessionRevenue;
+                clubData.finances += clubData.matchdayRevenue;
+
+                return {
+                    attendance: attendance,
+                    revenue: clubData.matchdayRevenue
+                };
+            }
+
+            function calculateSeasonEndRewards() {
+                // TV Revenue based on league position
+                const position = leagueTable.findIndex(team => team.name === selectedTeam) + 1;
+                const totalTeams = leagueTable.length;
+
+                // Higher positions get more TV money
+                const baseTvRevenue = 50000;
+                clubData.tvRevenue = baseTvRevenue + ((totalTeams - position) * 10000);
+                clubData.finances += clubData.tvRevenue;
+
+                // Sponsorship performance bonus
+                let sponsorshipBonus = 0;
+                if (clubData.sponsorship) {
+                    const wonLeague = position === 1;
+                    const topThree = position <= 3;
+
+                    if ((clubData.sponsorship.bonusCondition === "league_win" && wonLeague) ||
+                        (clubData.sponsorship.bonusCondition === "top_3" && topThree)) {
+                        sponsorshipBonus = clubData.sponsorship.performanceBonus;
+                        clubData.finances += sponsorshipBonus;
+                    }
+                }
+
+                return {
+                    tvRevenue: clubData.tvRevenue,
+                    sponsorshipBonus: sponsorshipBonus,
+                    position: position
+                };
+            }
+
+            function triggerFinancialTakeover() {
+                // 5% chance each season for a takeover
+                if (Math.random() < 0.05) {
+                    const takeoverAmount = 500000 + Math.floor(Math.random() * 1000000);
+                    clubData.finances += takeoverAmount;
+                    managerData.reputation += 10;
+
+                    showSuccessPopup('Financial Takeover!',
+                        `A wealthy investor has taken over the club! You've received $${takeoverAmount.toLocaleString()} in new investment!`);
+
+                    updateUI();
+                    return true;
+                }
+                return false;
+            }
+
+            function showFinancialReport() {
+                const report = `
+                    <h3>Financial Report - Season ${currentSeason}</h3>
+                    <div class="financial-report">
+                        <h4>Revenue</h4>
+                        <p>Season Tickets: $${clubData.seasonTicketRevenue.toLocaleString()}</p>
+                        <p>Matchday Revenue: $${clubData.matchdayRevenue.toLocaleString()}</p>
+                        <p>TV Revenue: $${clubData.tvRevenue.toLocaleString()}</p>
+                        <p>Sponsorship: $${clubData.sponsorship ? clubData.sponsorship.basePayment.toLocaleString() : '0'}</p>
+                        
+                        <h4>Expenses</h4>
+                        <p>Weekly Wages: $${clubData.weeklyWages.toLocaleString()}</p>
+                        <p>Transfer Budget: $${clubData.transferBudget.toLocaleString()}</p>
+                        
+                        <h4>Current Balance</h4>
+                        <p><strong>Club Finances: $${clubData.finances.toLocaleString()}</strong></p>
+                    </div>
+                `;
+
+                showAnimatedPopup('Financial Report', report, 'info');
+            }
+
+            // Newspaper modal functions
+            function showManagerReadingNewspaper(callback) {
+                // Create manager reading newspaper overlay
+                const readingOverlay = document.createElement('div');
+                readingOverlay.className = 'manager-reading-overlay';
+                readingOverlay.innerHTML = `
+                    <div class="manager-reading-content">
+                        <div class="manager-figure">
+                            <img src="manager newspaper.png" alt="Manager reading newspaper" class="manager-newspaper-image">
+                        </div>
+                        <div class="reading-text">
+                            <p>Manager reviewing the latest match reports...</p>
+                            <div class="reading-dots">
+                                <span>.</span><span>.</span><span>.</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(readingOverlay);
+
+                // Animate the reading sequence
+                setTimeout(() => {
+                    readingOverlay.querySelector('.reading-text p').textContent = 'Analyzing team performance...';
+                }, 1500);
+
+                setTimeout(() => {
+                    readingOverlay.querySelector('.reading-text p').textContent = 'Checking league standings...';
+                }, 3000);
+
+                // Remove overlay and show newspaper after reading sequence
+                setTimeout(() => {
+                    readingOverlay.style.opacity = '0';
+                    setTimeout(() => {
+                        document.body.removeChild(readingOverlay);
+                        callback(); // Show the actual newspaper modal
+                    }, 500);
+                }, 4500);
+            }
+
+            function showNewsModal(matchResult) {
+                const modal = document.getElementById('news-modal');
+                const title = document.getElementById('news-title');
+                const roundNumber = document.getElementById('news-round-number');
+                const playerHeadline = document.getElementById('news-player-headline');
+                const playerArticle = document.getElementById('news-player-article');
+
+                // Set newspaper content based on match result
+                title.textContent = `${selectedLeague} Gazette`;
+                roundNumber.textContent = currentMatchday - 1;
+
+                if (matchResult.isWin) {
+                    playerHeadline.textContent = `${selectedTeam} Triumph in Spectacular Fashion!`;
+                    playerArticle.textContent = `Manager's tactical brilliance shines as ${selectedTeam} secure a convincing victory. The fans are ecstatic with this performance, and the board couldn't be happier with the results.`;
+                } else if (matchResult.isDraw) {
+                    playerHeadline.textContent = `${selectedTeam} Hold Their Ground`;
+                    playerArticle.textContent = `A hard-fought draw for ${selectedTeam} as they showed resilience and determination. While not the result fans hoped for, the team's fighting spirit was evident throughout the match.`;
+                } else {
+                    playerHeadline.textContent = `${selectedTeam} Suffer Disappointing Defeat`;
+                    playerArticle.textContent = `Questions are being raised about the manager's tactics after ${selectedTeam}'s poor performance. Fans are growing restless, and pressure is mounting on the coaching staff.`;
+                }
+
+                modal.style.display = 'flex';
+            }
+
+            function closeNewsModal() {
+                const modal = document.getElementById('news-modal');
+                modal.style.display = 'none';
+            }
+
+            function isSeasonComplete() {
+                // Check if all fixtures have been played
+                return fixtures.every(matchdayFixtures =>
+                    matchdayFixtures.every(fixture => fixture.played)
+                );
+            }
+
+            // ===== PRE-SEASON FUNCTIONS =====
+            function startPreSeason() {
+                isPreSeason = true;
+
+                // Show pre-season tab and hide others initially
+                document.getElementById('preseason-tab').style.display = 'block';
+                openTab(null, 'preseason');
+
+                // Initialize season ticket sales
+                calculateSeasonTickets();
+
+                updatePreSeasonUI();
+                showAnimatedPopup('Pre-Season Begins!',
+                    `Welcome to ${selectedTeam}! Use the pre-season to prepare your team, sell season tickets, and build chemistry before the league starts.`,
+                    'info');
+            }
+
+            function updatePreSeasonUI() {
+                // Update season ticket progress
+                const progress = (fanData.seasonTicketsSold / fanData.maxSeasonTickets) * 100;
+                document.getElementById('season-ticket-progress').textContent =
+                    `Tickets Sold: ${fanData.seasonTicketsSold.toLocaleString()} / ${fanData.maxSeasonTickets.toLocaleString()}`;
+                document.getElementById('season-ticket-progress-bar').style.width = `${progress}%`;
+
+                // Update pre-season matches
+                document.getElementById('preseason-matches-info').textContent =
+                    `Matches Played: ${preSeasonData.matchesPlayed} / ${preSeasonData.maxMatches}`;
+
+                // Update team stats
+                document.getElementById('team-fitness').textContent = `${preSeasonData.teamFitness}%`;
+                document.getElementById('team-chemistry').textContent = `${preSeasonData.teamChemistry}%`;
+
+                // Update days left
+                document.getElementById('preseason-days-left').textContent =
+                    `Days until season: ${preSeasonData.daysLeft}`;
+
+                // Show/hide buttons based on state
+                const playMatchBtn = document.getElementById('play-preseason-match-btn');
+                const startSeasonBtn = document.getElementById('start-season-btn');
+
+                if (preSeasonData.matchesPlayed >= preSeasonData.maxMatches) {
+                    playMatchBtn.style.display = 'none';
+                } else {
+                    playMatchBtn.style.display = 'block';
+                }
+
+                if (preSeasonData.daysLeft <= 0) {
+                    startSeasonBtn.style.display = 'block';
+                    document.getElementById('advance-preseason-btn').style.display = 'none';
+                } else {
+                    startSeasonBtn.style.display = 'none';
+                }
+
+                updateUI();
+            }
+
+            function scheduleFriendlyMatch() {
+                if (preSeasonData.matchesPlayed >= preSeasonData.maxMatches) {
+                    showNotification('Schedule Match', 'You have already played all available pre-season friendlies.', 'warning');
+                    return;
+                }
+                
+                if (preSeasonData.scheduledMatches.length >= 3) {
+                    showNotification('Schedule Match', 'You can only schedule 3 matches maximum.', 'warning');
+                    return;
+                }
+                
+                // Schedule match for 2-5 days from now
+                const daysAhead = Math.floor(Math.random() * 4) + 2; // 2-5 days
+                const matchDay = Math.max(1, preSeasonData.daysLeft - daysAhead);
+                
+                if (matchDay <= 0) {
+                    showNotification('Schedule Match', 'Not enough time left to schedule more matches.', 'warning');
+                    return;
+                }
+                
+                // Generate opponent from other leagues
+                const allLeagues = {
+                    "Celestial Super League": [{ name: "Quantum Rovers", baseStrength: 10 }, { name: "Nebula Nomads", baseStrength: 9 }, { name: "Orion Olympians", baseStrength: 9 }, { name: "Galaxy Gladiators", baseStrength: 8 }, { name: "Solar Flare FC", baseStrength: 7 }, { name: "Void Wanderers", baseStrength: 6 }, { name: "Pulsar Pioneers", baseStrength: 5 }, { name: "Comet Captains", baseStrength: 4 }],
+                    "Clockwork Championship": [{ name: "Ironclad Internazionale", baseStrength: 10 }, { name: "Cogsworth City", baseStrength: 9 }, { name: "Dynamo Droids", baseStrength: 8 }, { name: "Steam-powered Strikers", baseStrength: 8 }, { name: "Automaton Athletic", baseStrength: 7 }, { name: "Geargrind Guild", baseStrength: 6 }, { name: "Piston Palace", baseStrength: 5 }, { name: "Rivet Rovers", baseStrength: 4 }],
+                    "Gilded Gauntlet": [{ name: "Eldorado Empire", baseStrength: 10 }, { name: "Argentum Assembly", baseStrength: 9 }, { name: "Pyrite Pirates", baseStrength: 8 }, { name: "Sovereign Strikers", baseStrength: 7 }, { name: "Bullion Bulls", baseStrength: 7 }, { name: "Treasury Trojans", baseStrength: 6 }, { name: "Minted Monarchs", baseStrength: 5 }, { name: "Crown Jewels FC", baseStrength: 4 }],
+                    "Jade Empire Division": [{ name: "Dragonstone Dynamos", baseStrength: 10 }, { name: "Emerald Pagodas", baseStrength: 9 }, { name: "Silent Shoguns", baseStrength: 8 }, { name: "Crimson Cranes", baseStrength: 7 }, { name: "Golden Lotus", baseStrength: 7 }, { name: "Jade Serpents", baseStrength: 6 }, { name: "Terracotta Titans", baseStrength: 5 }, { name: "Silk Road Wanderers", baseStrength: 4 }],
+                    "Voodoo Premier League": [{ name: "Bayou Phantoms", baseStrength: 10 }, { name: "Spirit Strikers", baseStrength: 9 }, { name: "Juju Juggernauts", baseStrength: 8 }, { name: "Gris-Gris Guardians", baseStrength: 7 }, { name: "Hex Hunters", baseStrength: 7 }, { name: "Charm City FC", baseStrength: 6 }, { name: "Potion Makers", baseStrength: 5 }, { name: "Mystic Marauders", baseStrength: 4 }],
+                    "Neon Nights League": [{ name: "Cyber Samurai", baseStrength: 10 }, { name: "Digital Dragons", baseStrength: 9 }, { name: "Pixel Pirates", baseStrength: 8 }, { name: "Code Crusaders", baseStrength: 7 }, { name: "Binary Bombers", baseStrength: 7 }, { name: "Data Demons", baseStrength: 6 }, { name: "Circuit Breakers", baseStrength: 5 }, { name: "Glitch Gladiators", baseStrength: 4 }],
+                    "Elemental Championship": [{ name: "Inferno Titans", baseStrength: 10 }, { name: "Tsunami Tempest", baseStrength: 9 }, { name: "Thunder Bolts", baseStrength: 8 }, { name: "Earthquake United", baseStrength: 7 }, { name: "Blizzard Bombers", baseStrength: 7 }, { name: "Volcanic Vipers", baseStrength: 6 }, { name: "Cyclone Strikers", baseStrength: 5 }, { name: "Frost Giants", baseStrength: 4 }],
+                    "Mythical Monsters League": [{ name: "Dragon Slayers", baseStrength: 10 }, { name: "Phoenix Rising", baseStrength: 9 }, { name: "Kraken Killers", baseStrength: 8 }, { name: "Griffin Guards", baseStrength: 7 }, { name: "Hydra Hunters", baseStrength: 7 }, { name: "Minotaur Maulers", baseStrength: 6 }, { name: "Chimera Champions", baseStrength: 5 }, { name: "Basilisk Brawlers", baseStrength: 4 }]
+                };
+                
+                // Get all teams from other leagues
+                const otherLeagueTeams = [];
+                Object.keys(allLeagues).forEach(leagueName => {
+                    if (leagueName !== selectedLeague) {
+                        otherLeagueTeams.push(...allLeagues[leagueName]);
+                    }
+                });
+                
+                const opponentTeam = otherLeagueTeams[Math.floor(Math.random() * otherLeagueTeams.length)];
+                
+                const scheduledMatch = {
+                    day: matchDay,
+                    opponent: opponentTeam.name,
+                    opponentStrength: opponentTeam.baseStrength,
+                    played: false
+                };
+                
+                preSeasonData.scheduledMatches.push(scheduledMatch);
+                preSeasonData.scheduledMatches.sort((a, b) => b.day - a.day); // Sort by day (descending)
+                
+                showNotification('Match Scheduled', `Friendly vs ${opponentTeam.name} scheduled for day ${matchDay}!`, 'success');
+                updateScheduledMatchesUI();
+                updateAllSectionUIs();
+            }
+
+            function playPreSeasonMatch() {
+                // Check if there's a match scheduled for today
+                const todayMatch = preSeasonData.scheduledMatches.find(match => 
+                    match.day === preSeasonData.daysLeft && !match.played
+                );
+                
+                if (!todayMatch) {
+                    showNotification('No Match Today', 'No friendly match scheduled for today.', 'warning');
+                    return;
+                }
+
+                // Use the scheduled opponent
+                const opponent = todayMatch.opponent;
+
+                // Simulate match with current fitness/chemistry affecting performance
+                const fitnessBonus = (preSeasonData.teamFitness - 75) / 100;
+                const chemistryBonus = (preSeasonData.teamChemistry - 60) / 100;
+                const totalBonus = fitnessBonus + chemistryBonus;
+
+                const playerScore = Math.max(0, Math.floor(Math.random() * 4 + totalBonus));
+                const opponentScore = Math.floor(Math.random() * 3);
+
+                // Mark match as played
+                todayMatch.played = true;
+                preSeasonData.matchesPlayed++;
+                preSeasonData.teamFitness = Math.min(100, preSeasonData.teamFitness + 5);
+                preSeasonData.teamChemistry = Math.min(100, preSeasonData.teamChemistry + 8);
+
+                const result = playerScore > opponentScore ? 'won' :
+                    playerScore === opponentScore ? 'drew' : 'lost';
+
+                showAnimatedPopup('Pre-Season Result',
+                    `${selectedTeam} ${playerScore} - ${opponentScore} ${opponent}\n\nYou ${result} the friendly match!\n\nTeam fitness and chemistry improved.\n\nDays remaining: ${preSeasonData.daysLeft}`,
+                    result === 'won' ? 'success' : 'info');
+
+                updatePreSeasonUI();
+                updateScheduledMatchesUI();
+                updateAllSectionUIs(); // Update sidebar stats
+            }
+
+            function updateScheduledMatchesUI() {
+                const scheduledList = document.getElementById('scheduled-matches-list');
+                if (!scheduledList) return;
+                
+                if (preSeasonData.scheduledMatches.length === 0) {
+                    scheduledList.innerHTML = 'No matches scheduled';
+                    return;
+                }
+                
+                const upcomingMatches = preSeasonData.scheduledMatches
+                    .filter(match => !match.played)
+                    .sort((a, b) => b.day - a.day);
+                
+                if (upcomingMatches.length === 0) {
+                    scheduledList.innerHTML = 'All scheduled matches completed';
+                    return;
+                }
+                
+                scheduledList.innerHTML = upcomingMatches.map(match => 
+                    `<div class="scheduled-match">
+                        <strong>Day ${match.day}:</strong> vs ${match.opponent}
+                        ${match.day === preSeasonData.daysLeft ? ' <span class="today-match">(TODAY!)</span>' : ''}
+                    </div>`
+                ).join('');
+                
+                // Show/hide play button based on whether there's a match today
+                const playBtn = document.getElementById('play-friendly-btn');
+                const scheduleBtn = document.getElementById('schedule-friendly-btn');
+                const todayMatch = upcomingMatches.find(match => match.day === preSeasonData.daysLeft);
+                
+                if (todayMatch) {
+                    playBtn.style.display = 'inline-block';
+                    scheduleBtn.style.display = 'none';
+                } else {
+                    playBtn.style.display = 'none';
+                    scheduleBtn.style.display = 'inline-block';
+                }
+            }
+
+            function runTrainingCamp() {
+                const cost = 10000;
+                if (clubData.finances >= cost) {
+                    clubData.finances -= cost;
+                    preSeasonData.teamFitness = Math.min(100, preSeasonData.teamFitness + 15);
+                    preSeasonData.teamChemistry = Math.min(100, preSeasonData.teamChemistry + 10);
+
+                    showSuccessPopup('Training Camp Complete!',
+                        'Intensive training has improved team fitness and chemistry significantly.');
+                    updatePreSeasonUI();
+                } else {
+                    showWarningPopup('Insufficient Funds', `You need $${cost.toLocaleString()} for a training camp.`);
+                }
+            }
+
+            function advancePreSeasonDay() {
+                if (preSeasonData.daysLeft <= 0) return;
+
+                preSeasonData.daysLeft--;
+                
+                // Check if there's a match scheduled for the new day
+                const todayMatch = preSeasonData.scheduledMatches.find(match => 
+                    match.day === preSeasonData.daysLeft && !match.played
+                );
+                
+                if (todayMatch) {
+                    showNotification('Match Day!', `Today is your friendly match vs ${todayMatch.opponent}!`, 'info');
+                }
+
+                // Sell some season tickets each day
+                const dailySales = Math.floor(Math.random() * (fanData.maxSeasonTickets * 0.1)) + 1;
+                const newSales = Math.min(dailySales, fanData.maxSeasonTickets - fanData.seasonTicketsSold);
+                fanData.seasonTicketsSold += newSales;
+                preSeasonData.seasonTicketsSoldToday = newSales;
+
+                // Add season ticket revenue
+                clubData.finances += newSales * fanData.seasonTicketPrice;
+
+                if (newSales > 0) {
+                    showAnimatedPopup('Season Tickets Sold!',
+                        `${newSales} season tickets sold today for $${(newSales * fanData.seasonTicketPrice).toLocaleString()}`,
+                        'success');
+                }
+
+                updatePreSeasonUI();
+                updateScheduledMatchesUI();
+                updateAllSectionUIs();
+            }
+
+            function finishPreSeason() {
+                isPreSeason = false;
+
+                // Hide pre-season tab
+                document.getElementById('preseason-tab').style.display = 'none';
+
+                // Apply pre-season bonuses to team strength
+                const fitnessBonus = Math.floor((preSeasonData.teamFitness - 75) / 5);
+                const chemistryBonus = Math.floor((preSeasonData.teamChemistry - 60) / 4);
+                clubData.strength += fitnessBonus + chemistryBonus;
+
+                // Switch to manager tab
+                openTab(null, 'manager');
+
+                updateUI();
+
+                showAnimatedPopup('Season Begins!',
+                    `Pre-season complete! Your team gained ${fitnessBonus + chemistryBonus} strength points from preparation.\n\nGood luck in the ${selectedLeague}!`,
+                    'success');
+            }
+
+            function endSeason() {
+                const seasonRewards = calculateSeasonEndRewards();
+                const finalPosition = seasonRewards.position;
+
+                let endSeasonMessage = `
+                    <h3>Season ${currentSeason} Complete!</h3>
+                    <p><strong>Final Position:</strong> ${finalPosition}${getOrdinalSuffix(finalPosition)}</p>
+                    <p><strong>TV Revenue:</strong> $${seasonRewards.tvRevenue.toLocaleString()}</p>
+                `;
+
+                if (seasonRewards.sponsorshipBonus > 0) {
+                    endSeasonMessage += `<p><strong>Sponsorship Bonus:</strong> $${seasonRewards.sponsorshipBonus.toLocaleString()}</p>`;
+                }
+
+                endSeasonMessage += `<p><strong>Total Season Revenue:</strong> $${(seasonRewards.tvRevenue + seasonRewards.sponsorshipBonus).toLocaleString()}</p>`;
+
+                showAnimatedPopup('Season Complete', endSeasonMessage, 'success', [
+                    { text: 'Continue to Next Season', action: () => startNewSeason() },
+                    { text: 'View Financial Report', action: () => showFinancialReport() }
+                ]);
+            }
+
+            function startNewSeason() {
+                currentSeason++;
+                currentMatchday = 1;
+
+                // Reset sponsorship for new offers
+                clubData.sponsorship = null;
+                document.getElementById('sponsorship-info').textContent = 'No active deals';
+
+                // Generate new sponsorship offers
+                generateSponsorshipOffers();
+
+                // Increase wages slightly
+                clubData.weeklyWages = Math.floor(clubData.weeklyWages * 1.05);
+
+                // New transfer budget
+                clubData.transferBudget = 50000 + (managerData.reputation * 1000);
+
+                // Reset league table and fixtures
+                initializeLeagueTable();
+                generateFixtures();
+
+                // Calculate new season ticket sales
+                calculateSeasonTicketSales();
+
+                updateUI();
+
+                showSuccessPopup('New Season!', `Welcome to Season ${currentSeason}! New sponsorship offers are available.`);
+            }
+
+            function getOrdinalSuffix(num) {
+                const j = num % 10;
+                const k = num % 100;
+                if (j == 1 && k != 11) return "st";
+                if (j == 2 && k != 12) return "nd";
+                if (j == 3 && k != 13) return "rd";
+                return "th";
+            }
+
+            function showNotification(title, message, type = 'info') {
+                // Simple notification system
+                const notification = document.createElement('div');
+                notification.className = `notification notification-${type} fade-in`;
+                notification.innerHTML = `<strong>${title}</strong><br>${message}`;
+                notification.style.position = 'fixed';
+                notification.style.top = '20px';
+                notification.style.right = '20px';
+                notification.style.zIndex = '9999';
+                notification.style.maxWidth = '300px';
+
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            document.body.removeChild(notification);
+                        }
+                    }, 300);
+                }, 3000);
+            }
+
+            // SIDEBAR NAVIGATION SYSTEM
+            function initializeSidebar() {
+                console.log('Initializing sidebar...');
+                const sidebar = document.getElementById('sidebar');
+                console.log('Sidebar element:', sidebar);
+                
+                const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
+                const sections = document.querySelectorAll('section[id$="-view"]');
+                
+                console.log('Found', sidebarLinks.length, 'sidebar links');
+                console.log('Found', sections.length, 'sections');
+                
+                sidebarLinks.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        
+                        // Remove active class from all links
+                        sidebarLinks.forEach(l => l.classList.remove('active'));
+                        
+                        // Add active class to clicked link
+                        link.classList.add('active');
+                        
+                        // Hide all sections
+                        sections.forEach(section => {
+                            section.style.display = 'none';
+                            section.classList.remove('active');
+                        });
+                        
+                        // Show selected section
+                        const targetSection = link.getAttribute('data-section');
+                        const section = document.getElementById(targetSection);
+                        if (section) {
+                            section.style.display = 'block';
+                            section.classList.add('active');
+                        }
+                        
+                        // Update UI for specific sections
+                        if (targetSection === 'finances-view') {
+                            updateFinancialUI();
+                        } else if (targetSection === 'lifestyle-view') {
+                            updateLifestyleUI();
+                        }
+                        
+                        // Update all section UIs
+                        updateAllSectionUIs();
+                    });
+                });
+                
+                // Update sidebar displays
+                updateSidebarDisplays();
+            }
+
+            function updateSidebarDisplays() {
+                document.getElementById('manager-wealth-display').textContent = managerData.wealth.toLocaleString();
+                document.getElementById('manager-reputation-display').textContent = managerData.reputation;
+                document.getElementById('season-display').textContent = currentSeason;
+                document.getElementById('matchday-display').textContent = currentMatchday;
+            }
+
+            // LIFESTYLE SYSTEM
+            function initializeLifestyle() {
+                const lifestyleButtons = document.querySelectorAll('.lifestyle-btn');
+                
+                lifestyleButtons.forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const item = e.target.closest('.lifestyle-item');
+                        const itemType = item.getAttribute('data-item');
+                        const cost = parseInt(item.getAttribute('data-cost'));
+                        const reputation = parseInt(item.getAttribute('data-reputation'));
+                        
+                        purchaseLifestyleItem(itemType, cost, reputation);
+                    });
+                });
+                
+                updateLifestyleUI();
+            }
+
+            function purchaseLifestyleItem(itemType, cost, reputation) {
+                if (managerData.wealth < cost) {
+                    showNotification('Insufficient Funds', `You need $${cost.toLocaleString()} to afford this lifestyle upgrade.`, 'error');
+                    return;
+                }
+                
+                // Check if already owned
+                const existingItem = managerData.lifestyle.find(item => item.type === itemType);
+                if (existingItem) {
+                    showNotification('Already Owned', 'You already have this lifestyle item.', 'warning');
+                    return;
+                }
+                
+                // Remove conflicting items (same category)
+                const categories = {
+                    'apartment': 'housing',
+                    'house': 'housing', 
+                    'mansion': 'housing',
+                    'car': 'transport',
+                    'luxury_car': 'transport',
+                    'sports_car': 'transport',
+                    'dining': 'entertainment',
+                    'entertainment': 'entertainment'
+                };
+                
+                const category = categories[itemType];
+                managerData.lifestyle = managerData.lifestyle.filter(item => categories[item.type] !== category);
+                
+                // Add new item
+                managerData.lifestyle.push({
+                    type: itemType,
+                    cost: cost,
+                    reputation: reputation
+                });
+                
+                // Deduct cost
+                managerData.wealth -= cost;
+                
+                // Add reputation
+                managerData.reputation += reputation;
+                
+                showNotification('Lifestyle Upgrade', `You've upgraded your lifestyle! +${reputation} reputation`, 'success');
+                
+                updateLifestyleUI();
+                updateSidebarDisplays();
+            }
+
+            function updateLifestyleUI() {
+                const currentItems = document.getElementById('current-lifestyle-items');
+                const monthlyCost = document.getElementById('lifestyle-monthly-cost');
+                const reputationBonus = document.getElementById('lifestyle-reputation-bonus');
+                
+                if (managerData.lifestyle.length === 0) {
+                    currentItems.innerHTML = '<p>Living modestly...</p>';
+                    monthlyCost.textContent = '0';
+                    reputationBonus.textContent = '0';
+                } else {
+                    const itemNames = {
+                        'apartment': '🏠 City Apartment',
+                        'house': '🏠 Suburban House',
+                        'mansion': '🏠 Luxury Mansion',
+                        'car': '🚗 Economy Car',
+                        'luxury_car': '🚗 Luxury Car',
+                        'sports_car': '🚗 Sports Car',
+                        'dining': '🍽️ Fine Dining',
+                        'entertainment': '🎭 VIP Entertainment'
+                    };
+                    
+                    currentItems.innerHTML = managerData.lifestyle.map(item => 
+                        `<p>${itemNames[item.type]} - $${item.cost.toLocaleString()}/month</p>`
+                    ).join('');
+                    
+                    const totalCost = managerData.lifestyle.reduce((sum, item) => sum + item.cost, 0);
+                    const totalReputation = managerData.lifestyle.reduce((sum, item) => sum + item.reputation, 0);
+                    
+                    monthlyCost.textContent = totalCost.toLocaleString();
+                    reputationBonus.textContent = totalReputation;
+                }
+                
+                // Update button states
+                document.querySelectorAll('.lifestyle-item').forEach(item => {
+                    const itemType = item.getAttribute('data-item');
+                    const cost = parseInt(item.getAttribute('data-cost'));
+                    const button = item.querySelector('.lifestyle-btn');
+                    
+                    const owned = managerData.lifestyle.find(li => li.type === itemType);
+                    const canAfford = managerData.wealth >= cost;
+                    
+                    if (owned) {
+                        button.textContent = 'Owned';
+                        button.disabled = true;
+                    } else if (!canAfford) {
+                        button.textContent = 'Too Expensive';
+                        button.disabled = true;
+                    } else {
+                        button.disabled = false;
+                        const actions = {
+                            'apartment': 'Rent',
+                            'house': 'Buy',
+                            'mansion': 'Buy',
+                            'car': 'Lease',
+                            'luxury_car': 'Lease',
+                            'sports_car': 'Lease',
+                            'dining': 'Subscribe',
+                            'entertainment': 'Subscribe'
+                        };
+                        button.textContent = actions[itemType] || 'Purchase';
+                    }
+                });
+            }
+
+            // Initialize sidebar navigation
+            initializeSidebar();
+            
+            // Initialize lifestyle system
+            initializeLifestyle();
+
+            // MOBILE SIDEBAR TOGGLE
+            function toggleMobileSidebar() {
+                const sidebar = document.getElementById('sidebar');
+                sidebar.classList.toggle('mobile-open');
+            }
+
+            // UPDATE FINANCIAL UI
+            function updateFinancialUI() {
+                document.getElementById('club-balance-display').textContent = clubData.finances.toLocaleString();
+                document.getElementById('weekly-expenses-display').textContent = clubData.weeklyWages.toLocaleString();
+                document.getElementById('season-ticket-revenue-display').textContent = clubData.seasonTicketRevenue.toLocaleString();
+                document.getElementById('tv-revenue-display').textContent = clubData.tvRevenue.toLocaleString();
+                document.getElementById('stadium-capacity-display').textContent = clubData.stadiumCapacity.toLocaleString();
+                document.getElementById('transfer-budget-display').textContent = clubData.transferBudget.toLocaleString();
+                document.getElementById('team-strength-display').textContent = clubData.strength;
+            }
+
+            // UPDATE ALL SECTION UIs
+            function updateAllSectionUIs() {
+                // Manager stats
+                if (document.getElementById('manager-wealth-stat')) {
+                    document.getElementById('manager-wealth-stat').textContent = managerData.wealth.toLocaleString();
+                    document.getElementById('manager-reputation-stat').textContent = managerData.reputation;
+                    document.getElementById('manager-job-security-stat').textContent = managerData.jobSecurity;
+                }
+                
+                // Club stats
+                if (document.getElementById('club-strength-stat')) {
+                    document.getElementById('club-strength-stat').textContent = clubData.strength;
+                    document.getElementById('club-capacity-stat').textContent = clubData.stadiumCapacity.toLocaleString();
+                    document.getElementById('club-finances-stat').textContent = clubData.finances.toLocaleString();
+                }
+                
+                // Fan stats
+                if (document.getElementById('fan-happiness-stat')) {
+                    document.getElementById('fan-happiness-stat').textContent = fanData.happiness;
+                    document.getElementById('season-tickets-sold-stat').textContent = fanData.seasonTicketsSold.toLocaleString();
+                    document.getElementById('ticket-price-stat').textContent = fanData.matchdayTicketPrice;
+                }
+                
+                // Pre-season stats
+                if (document.getElementById('preseason-days-stat') && isPreSeason) {
+                    document.getElementById('preseason-days-stat').textContent = preSeasonData.daysLeft;
+                    document.getElementById('friendlies-played-stat').textContent = preSeasonData.matchesPlayed;
+                    document.getElementById('team-fitness-stat').textContent = preSeasonData.teamFitness;
+                }
+            }
+
+            // NEW SECTION FUNCTIONS
+            function holdPressConference() {
+                const messages = [
+                    "We're focused on improving our performance this season.",
+                    "The team is working hard in training and we're optimistic.",
+                    "Our fans deserve better and we're committed to delivering.",
+                    "We have full confidence in our squad and tactical approach.",
+                    "Every match is important and we take nothing for granted."
+                ];
+                
+                const message = messages[Math.floor(Math.random() * messages.length)];
+                showNotification('Press Conference', `Manager: "${message}"`, 'info');
+                
+                // Small reputation boost
+                managerData.reputation += 1;
+                updateSidebarDisplays();
+            }
+
+            function organizeTrainingCamp() {
+                if (preSeasonData.daysLeft < 3) {
+                    showNotification('Training Camp', 'Not enough time left for a training camp!', 'warning');
+                    return;
+                }
+                
+                // Cost money but improve fitness and chemistry
+                const cost = 5000;
+                if (clubData.finances < cost) {
+                    showNotification('Training Camp', 'Not enough funds for a training camp!', 'error');
+                    return;
+                }
+                
+                clubData.finances -= cost;
+                preSeasonData.teamFitness = Math.min(100, preSeasonData.teamFitness + 10);
+                preSeasonData.teamChemistry = Math.min(100, preSeasonData.teamChemistry + 15);
+                preSeasonData.daysLeft -= 3;
+                
+                showNotification('Training Camp', 'Successful training camp! Team fitness and chemistry improved.', 'success');
+                updateAllSectionUIs();
+            }
+
+            // Auto-start the game since team was selected in intro.html
+            startGame();
+        });
+    </script>
+    </div> <!-- Close main-content -->
+</body>
+
+</html>
