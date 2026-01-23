@@ -3,9 +3,9 @@
  * Handles club development including training, academy, stadium, and facilities
  */
 
-import { gameState } from '../core/game-state.js';
-import { showConfirmPopup, showErrorPopup, showSuccessPopup } from '../ui/popup-manager.js';
-import { updateUI } from '../ui/ui-manager.js';
+import { gameState } from '../core/state-manager.js';
+import { showConfirmPopup, showErrorPopup, showSuccessPopup } from '../ui/notification-system.js';
+import { updateUI } from '../ui/ui-controller.js';
 
 /**
  * Upgrade training facilities

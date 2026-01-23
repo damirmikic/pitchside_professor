@@ -3,10 +3,10 @@
  * Handles pre-season activities including friendlies, training camps, and preparation
  */
 
-import { gameState } from '../core/game-state.js';
-import { showAnimatedPopup, showSuccessPopup, showWarningPopup } from '../ui/popup-manager.js';
-import { showNotification } from '../ui/notification-manager.js';
-import { updateUI } from '../ui/ui-manager.js';
+import { gameState } from '../core/state-manager.js';
+import { showAnimatedPopup, showSuccessPopup, showWarningPopup } from '../ui/notification-system.js';
+import { showNotification } from '../ui/notification-system.js';
+import { updateUI } from '../ui/ui-controller.js';
 import { calculateSeasonTicketSales } from './finance-manager.js';
 
 /**

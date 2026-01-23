@@ -3,10 +3,10 @@
  * Handles fan engagement including promotions and press conferences
  */
 
-import { gameState } from '../core/game-state.js';
-import { showConfirmPopup, showErrorPopup, showSuccessPopup } from '../ui/popup-manager.js';
-import { showNotification } from '../ui/notification-manager.js';
-import { updateUI } from '../ui/ui-manager.js';
+import { gameState } from '../core/state-manager.js';
+import { showConfirmPopup, showErrorPopup, showSuccessPopup } from '../ui/notification-system.js';
+import { showNotification } from '../ui/notification-system.js';
+import { updateUI } from '../ui/ui-controller.js';
 
 /**
  * Run a promotional campaign

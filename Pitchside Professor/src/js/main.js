@@ -7,6 +7,11 @@
 import { gameState } from './core/state-manager.js';
 import { leagues } from './data/leagues.js';
 
+// Import utility modules
+import { validateTicketPrice } from './utils/input-validator.js';
+import { sanitizeNumber } from './utils/input-sanitizer.js';
+import { downloadSaveFile, uploadSaveFile, quickSave, quickLoad } from './utils/save-manager.js';
+
 // Import UI modules
 import {
     updateUI,
@@ -127,28 +132,42 @@ function setupEventListeners() {
         mainActionBtn.addEventListener('click', playMatchday);
     }
 
-    // Ticket price sliders
+    // Ticket price sliders with validation
     const seasonTicketSlider = document.getElementById('season-ticket-price-slider');
     if (seasonTicketSlider) {
         seasonTicketSlider.addEventListener('input', function () {
-            gameState.fanData.seasonTicketPrice = parseInt(this.value);
-            const valueDisplay = document.getElementById('season-ticket-price-value');
-            if (valueDisplay) {
-                valueDisplay.textContent = `$${this.value}`;
+            const sanitized = sanitizeNumber(this.value);
+            const validation = validateTicketPrice(sanitized);
+
+            if (validation.valid) {
+                gameState.fanData.seasonTicketPrice = validation.sanitized;
+                const valueDisplay = document.getElementById('season-ticket-price-value');
+                if (valueDisplay) {
+                    valueDisplay.textContent = `$${validation.sanitized}`;
+                }
+                updateUI();
+            } else {
+                console.warn('Invalid season ticket price:', validation.error);
             }
-            updateUI();
         });
     }
 
     const matchdayTicketSlider = document.getElementById('matchday-ticket-price-slider');
     if (matchdayTicketSlider) {
         matchdayTicketSlider.addEventListener('input', function () {
-            gameState.fanData.matchdayTicketPrice = parseInt(this.value);
-            const valueDisplay = document.getElementById('matchday-ticket-price-value');
-            if (valueDisplay) {
-                valueDisplay.textContent = `$${this.value}`;
+            const sanitized = sanitizeNumber(this.value);
+            const validation = validateTicketPrice(sanitized);
+
+            if (validation.valid) {
+                gameState.fanData.matchdayTicketPrice = validation.sanitized;
+                const valueDisplay = document.getElementById('matchday-ticket-price-value');
+                if (valueDisplay) {
+                    valueDisplay.textContent = `$${validation.sanitized}`;
+                }
+                updateUI();
+            } else {
+                console.warn('Invalid matchday ticket price:', validation.error);
             }
-            updateUI();
         });
     }
 
@@ -235,6 +254,59 @@ function setupEventListeners() {
     const startSeasonBtn = document.getElementById('start-season-btn');
     if (startSeasonBtn) {
         startSeasonBtn.addEventListener('click', () => finishPreSeason());
+    }
+
+    // Save/Load buttons
+    const quickSaveBtn = document.getElementById('quick-save-btn');
+    if (quickSaveBtn) {
+        quickSaveBtn.addEventListener('click', () => {
+            if (quickSave()) {
+                showNotification('Game saved successfully!', 'success');
+            } else {
+                showNotification('Failed to save game', 'error');
+            }
+        });
+    }
+
+    const quickLoadBtn = document.getElementById('quick-load-btn');
+    if (quickLoadBtn) {
+        quickLoadBtn.addEventListener('click', () => {
+            if (quickLoad()) {
+                showNotification('Game loaded successfully!', 'success');
+                updateUI();
+                updateAllSectionUIs();
+            } else {
+                showNotification('No save file found', 'error');
+            }
+        });
+    }
+
+    const exportSaveBtn = document.getElementById('export-save-btn');
+    if (exportSaveBtn) {
+        exportSaveBtn.addEventListener('click', () => {
+            if (downloadSaveFile()) {
+                showNotification('Save file exported successfully!', 'success');
+            } else {
+                showNotification('Failed to export save file', 'error');
+            }
+        });
+    }
+
+    const importSaveBtn = document.getElementById('import-save-btn');
+    if (importSaveBtn) {
+        importSaveBtn.addEventListener('click', () => {
+            uploadSaveFile(
+                (filename) => {
+                    showNotification(`Loaded save file: ${filename}`, 'success');
+                    updateUI();
+                    updateAllSectionUIs();
+                },
+                (error) => {
+                    showNotification('Failed to load save file', 'error');
+                    console.error(error);
+                }
+            );
+        });
     }
 }
 

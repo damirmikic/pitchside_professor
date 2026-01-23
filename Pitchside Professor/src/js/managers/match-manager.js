@@ -3,10 +3,10 @@
  * Handles all match-related functionality including fixtures, simulations, and results
  */
 
-import { gameState } from '../core/game-state.js';
-import { showAnimatedPopup, showWarningPopup } from '../ui/popup-manager.js';
+import { gameState } from '../core/state-manager.js';
+import { showAnimatedPopup, showWarningPopup } from '../ui/notification-system.js';
 import { calculateMatchdayRevenue, processWeeklyWages, triggerFinancialTakeover } from './finance-manager.js';
-import { updateUI } from '../ui/ui-manager.js';
+import { updateUI } from '../ui/ui-controller.js';
 
 /**
  * Initialize the league table with all teams
@@ -215,6 +215,9 @@ export function playMatchday() {
         }, 1500);
 
         gameState.currentMatchday++;
+
+        // Auto-save after matchday
+        gameState.autoSave();
 
         // Check if season is complete
         if (isSeasonComplete()) {
