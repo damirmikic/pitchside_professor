@@ -431,7 +431,10 @@
                     <hr>
                     <h5>Stadium Development</h5>
                     <div id="stadium-view">
-                        <img id="stadium-image" src="src/assets/images/small stadium.png" alt="Stadium">
+                        <picture>
+                            <source id="stadium-image-webp" srcset="src/assets/images/small stadium.webp" type="image/webp">
+                            <img id="stadium-image" src="src/assets/images/small stadium.png" alt="Stadium" loading="lazy">
+                        </picture>
                         <div id="hotspot-stand" class="hotspot">Expand</div>
                         <div id="hotspot-concessions" class="hotspot">Food</div>
                         <div id="hotspot-store" class="hotspot">Store</div>

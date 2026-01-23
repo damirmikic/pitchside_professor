@@ -89,14 +89,18 @@ export function expandStadium() {
 
                 // Update stadium image based on level
                 const stadiumImage = document.getElementById('stadium-image');
-                if (stadiumImage) {
-                    if (clubData.stadiumLevel >= 4) {
-                        stadiumImage.src = 'elite stadium.png';
-                    } else if (clubData.stadiumLevel >= 3) {
-                        stadiumImage.src = 'large stadium.png';
+                const stadiumImageWebp = document.getElementById('stadium-image-webp');
+                if (stadiumImage && stadiumImageWebp) {
+                    let imageName;
+                    if (clubData.stadiumLevel >= 3) {
+                        imageName = 'world stadium';
                     } else if (clubData.stadiumLevel >= 2) {
-                        stadiumImage.src = 'medium stadium.png';
+                        imageName = 'mid stadium';
+                    } else {
+                        imageName = 'small stadium';
                     }
+                    stadiumImageWebp.srcset = `src/assets/images/${imageName}.webp`;
+                    stadiumImage.src = `src/assets/images/${imageName}.png`;
                 }
 
                 updateUI();

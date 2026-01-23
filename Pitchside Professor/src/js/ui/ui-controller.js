@@ -1,10 +1,34 @@
 /**
  * UI Controller
- * Handles all UI updates and rendering
+ * Handles all UI updates and rendering with optimized DOM caching
  */
 
 import { gameState } from '../core/state-manager.js';
 import { getStadiumLevelName, formatCurrency, formatNumber, getOrdinalSuffix } from '../utils/formatters.js';
+import { domUpdater } from '../utils/dom-batcher.js';
+
+// DOM Element Cache - avoids repeated getElementById calls
+const elementCache = new Map();
+
+/**
+ * Get cached DOM element or fetch and cache it
+ * @param {string} id - Element ID
+ * @returns {Element|null} The DOM element or null if not found
+ */
+function getCachedElement(id) {
+    if (!elementCache.has(id)) {
+        elementCache.set(id, document.getElementById(id));
+    }
+    return elementCache.get(id);
+}
+
+/**
+ * Clear the element cache (call when DOM structure changes significantly)
+ */
+export function clearElementCache() {
+    elementCache.clear();
+    domUpdater.clearCache();
+}
 
 /**
  * Update all UI elements
@@ -19,12 +43,12 @@ export function updateUI() {
 }
 
 /**
- * Update manager statistics displays
+ * Update manager statistics displays using cached elements
  */
 function updateManagerStats() {
-    const wealthElement = document.getElementById('manager-wealth');
-    const reputationElement = document.getElementById('manager-reputation');
-    const jobSecurityBar = document.getElementById('job-security-bar');
+    const wealthElement = getCachedElement('manager-wealth');
+    const reputationElement = getCachedElement('manager-reputation');
+    const jobSecurityBar = getCachedElement('job-security-bar');
 
     if (wealthElement) {
         wealthElement.textContent = formatCurrency(gameState.managerData.wealth);
@@ -48,11 +72,11 @@ function updateManagerStats() {
 }
 
 /**
- * Update club statistics displays
+ * Update club statistics displays using cached elements
  */
 function updateClubStats() {
-    const financesElement = document.getElementById('club-finances');
-    const strengthElement = document.getElementById('club-strength');
+    const financesElement = getCachedElement('club-finances');
+    const strengthElement = getCachedElement('club-strength');
 
     if (financesElement) {
         financesElement.textContent = formatCurrency(gameState.clubData.finances);
@@ -63,10 +87,10 @@ function updateClubStats() {
 }
 
 /**
- * Update fan statistics displays
+ * Update fan statistics displays using cached elements
  */
 function updateFanStats() {
-    const fanHappinessBar = document.getElementById('fan-happiness-bar');
+    const fanHappinessBar = getCachedElement('fan-happiness-bar');
 
     if (fanHappinessBar) {
         fanHappinessBar.style.width = `${gameState.fanData.happiness}%`;
@@ -83,10 +107,10 @@ function updateFanStats() {
 }
 
 /**
- * Update stadium information display
+ * Update stadium information display using cached elements
  */
 function updateStadiumInfo() {
-    const stadiumInfoElement = document.getElementById('stadium-info');
+    const stadiumInfoElement = getCachedElement('stadium-info');
     if (stadiumInfoElement) {
         stadiumInfoElement.textContent =
             `Current Capacity: ${formatNumber(gameState.clubData.stadiumCapacity)} | Level: ${getStadiumLevelName(gameState.clubData.stadiumLevel)}`;
@@ -94,10 +118,10 @@ function updateStadiumInfo() {
 }
 
 /**
- * Update season ticket display
+ * Update season ticket display using cached elements
  */
 export function updateSeasonTicketDisplay() {
-    const seasonTicketsInfo = document.getElementById('season-tickets-info');
+    const seasonTicketsInfo = getCachedElement('season-tickets-info');
     if (seasonTicketsInfo) {
         seasonTicketsInfo.textContent =
             `Season tickets sold: ${formatNumber(gameState.fanData.seasonTicketsSold)}/${formatNumber(gameState.fanData.maxSeasonTickets)}`;
@@ -105,11 +129,11 @@ export function updateSeasonTicketDisplay() {
 }
 
 /**
- * Update ticket price displays
+ * Update ticket price displays using cached elements
  */
 function updateTicketPrices() {
-    const seasonTicketValue = document.getElementById('season-ticket-price-value');
-    const matchdayTicketValue = document.getElementById('matchday-ticket-price-value');
+    const seasonTicketValue = getCachedElement('season-ticket-price-value');
+    const matchdayTicketValue = getCachedElement('matchday-ticket-price-value');
 
     if (seasonTicketValue) {
         seasonTicketValue.textContent = formatCurrency(gameState.fanData.seasonTicketPrice);
@@ -120,13 +144,13 @@ function updateTicketPrices() {
 }
 
 /**
- * Update sidebar displays (wealth, reputation, season, matchday)
+ * Update sidebar displays (wealth, reputation, season, matchday) using cached elements
  */
 export function updateSidebarDisplays() {
-    const wealthDisplay = document.getElementById('manager-wealth-display');
-    const reputationDisplay = document.getElementById('manager-reputation-display');
-    const seasonDisplay = document.getElementById('season-display');
-    const matchdayDisplay = document.getElementById('matchday-display');
+    const wealthDisplay = getCachedElement('manager-wealth-display');
+    const reputationDisplay = getCachedElement('manager-reputation-display');
+    const seasonDisplay = getCachedElement('season-display');
+    const matchdayDisplay = getCachedElement('matchday-display');
 
     if (wealthDisplay) {
         wealthDisplay.textContent = formatNumber(gameState.managerData.wealth);
@@ -143,31 +167,31 @@ export function updateSidebarDisplays() {
 }
 
 /**
- * Update all section-specific UIs
+ * Update all section-specific UIs using cached elements
  */
 export function updateAllSectionUIs() {
     // Manager section
-    const managerWealthStat = document.getElementById('manager-wealth-stat');
-    const managerReputationStat = document.getElementById('manager-reputation-stat');
-    const managerJobSecurityStat = document.getElementById('manager-job-security-stat');
+    const managerWealthStat = getCachedElement('manager-wealth-stat');
+    const managerReputationStat = getCachedElement('manager-reputation-stat');
+    const managerJobSecurityStat = getCachedElement('manager-job-security-stat');
 
     if (managerWealthStat) managerWealthStat.textContent = formatNumber(gameState.managerData.wealth);
     if (managerReputationStat) managerReputationStat.textContent = gameState.managerData.reputation;
     if (managerJobSecurityStat) managerJobSecurityStat.textContent = gameState.managerData.jobSecurity;
 
     // Club section
-    const clubStrengthStat = document.getElementById('club-strength-stat');
-    const clubCapacityStat = document.getElementById('club-capacity-stat');
-    const clubFinancesStat = document.getElementById('club-finances-stat');
+    const clubStrengthStat = getCachedElement('club-strength-stat');
+    const clubCapacityStat = getCachedElement('club-capacity-stat');
+    const clubFinancesStat = getCachedElement('club-finances-stat');
 
     if (clubStrengthStat) clubStrengthStat.textContent = gameState.clubData.strength;
     if (clubCapacityStat) clubCapacityStat.textContent = formatNumber(gameState.clubData.stadiumCapacity);
     if (clubFinancesStat) clubFinancesStat.textContent = formatNumber(gameState.clubData.finances);
 
     // Fans section
-    const fanHappinessStat = document.getElementById('fan-happiness-stat');
-    const seasonTicketsSoldStat = document.getElementById('season-tickets-sold-stat');
-    const ticketPriceStat = document.getElementById('ticket-price-stat');
+    const fanHappinessStat = getCachedElement('fan-happiness-stat');
+    const seasonTicketsSoldStat = getCachedElement('season-tickets-sold-stat');
+    const ticketPriceStat = getCachedElement('ticket-price-stat');
 
     if (fanHappinessStat) fanHappinessStat.textContent = gameState.fanData.happiness;
     if (seasonTicketsSoldStat) seasonTicketsSoldStat.textContent = gameState.fanData.seasonTicketsSold;
@@ -175,13 +199,13 @@ export function updateAllSectionUIs() {
 }
 
 /**
- * Update financial UI displays
+ * Update financial UI displays using cached elements
  */
 export function updateFinancialUI() {
-    const clubBalanceDisplay = document.getElementById('club-balance-display');
-    const weeklyExpensesDisplay = document.getElementById('weekly-expenses-display');
-    const seasonTicketRevenueDisplay = document.getElementById('season-ticket-revenue-display');
-    const tvRevenueDisplay = document.getElementById('tv-revenue-display');
+    const clubBalanceDisplay = getCachedElement('club-balance-display');
+    const weeklyExpensesDisplay = getCachedElement('weekly-expenses-display');
+    const seasonTicketRevenueDisplay = getCachedElement('season-ticket-revenue-display');
+    const tvRevenueDisplay = getCachedElement('tv-revenue-display');
 
     if (clubBalanceDisplay) {
         clubBalanceDisplay.textContent = formatNumber(gameState.clubData.finances);
@@ -198,17 +222,17 @@ export function updateFinancialUI() {
 }
 
 /**
- * Toggle mobile sidebar
+ * Toggle mobile sidebar using cached element
  */
 export function toggleMobileSidebar() {
-    const sidebar = document.getElementById('sidebar');
+    const sidebar = getCachedElement('sidebar');
     if (sidebar) {
         sidebar.classList.toggle('active');
     }
 }
 
 /**
- * Open a tab
+ * Open a tab using cached element
  * @param {Event} evt - Click event
  * @param {string} tabName - Name of tab to open
  */
@@ -223,12 +247,15 @@ export function openTab(evt, tabName) {
         tablinks[i].classList.remove("active");
     }
 
-    document.getElementById(tabName).classList.add("active");
+    const targetTab = getCachedElement(tabName);
+    if (targetTab) {
+        targetTab.classList.add("active");
+    }
     evt.currentTarget.classList.add("active");
 }
 
 /**
- * Open a world tab
+ * Open a world tab using cached element
  * @param {Event} evt - Click event
  * @param {string} tabName - Name of tab to open
  */
@@ -239,6 +266,9 @@ export function openWorldTab(evt, tabName) {
     worldTabContent.forEach(content => content.classList.remove("active"));
     worldTabLinks.forEach(link => link.classList.remove("active"));
 
-    document.getElementById(tabName).classList.add("active");
+    const targetTab = getCachedElement(tabName);
+    if (targetTab) {
+        targetTab.classList.add("active");
+    }
     evt.currentTarget.classList.add("active");
 }

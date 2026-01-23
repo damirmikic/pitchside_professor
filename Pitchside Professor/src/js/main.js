@@ -11,6 +11,7 @@ import { leagues } from './data/leagues.js';
 import { validateTicketPrice } from './utils/input-validator.js';
 import { sanitizeNumber } from './utils/input-sanitizer.js';
 import { downloadSaveFile, uploadSaveFile, quickSave, quickLoad } from './utils/save-manager.js';
+import { eventManager } from './utils/event-manager.js';
 
 // Import UI modules
 import {
@@ -123,19 +124,17 @@ function startGame() {
 }
 
 /**
- * Set up all event listeners
+ * Set up all event listeners using EventManager for proper cleanup
  */
 function setupEventListeners() {
     // Main action button (Play Matchday)
     const mainActionBtn = document.getElementById('main-action-btn');
-    if (mainActionBtn) {
-        mainActionBtn.addEventListener('click', playMatchday);
-    }
+    eventManager.addEventListener(mainActionBtn, 'click', playMatchday);
 
     // Ticket price sliders with validation
     const seasonTicketSlider = document.getElementById('season-ticket-price-slider');
     if (seasonTicketSlider) {
-        seasonTicketSlider.addEventListener('input', function () {
+        eventManager.addEventListener(seasonTicketSlider, 'input', function () {
             const sanitized = sanitizeNumber(this.value);
             const validation = validateTicketPrice(sanitized);
 
@@ -154,7 +153,7 @@ function setupEventListeners() {
 
     const matchdayTicketSlider = document.getElementById('matchday-ticket-price-slider');
     if (matchdayTicketSlider) {
-        matchdayTicketSlider.addEventListener('input', function () {
+        eventManager.addEventListener(matchdayTicketSlider, 'input', function () {
             const sanitized = sanitizeNumber(this.value);
             const validation = validateTicketPrice(sanitized);
 
@@ -173,61 +172,41 @@ function setupEventListeners() {
 
     // Club development buttons
     const upgradeTrainingBtn = document.getElementById('upgrade-training-btn');
-    if (upgradeTrainingBtn) {
-        upgradeTrainingBtn.addEventListener('click', () => upgradeTraining());
-    }
+    eventManager.addEventListener(upgradeTrainingBtn, 'click', () => upgradeTraining());
 
     const upgradeAcademyBtn = document.getElementById('upgrade-academy-btn');
-    if (upgradeAcademyBtn) {
-        upgradeAcademyBtn.addEventListener('click', () => upgradeAcademy());
-    }
+    eventManager.addEventListener(upgradeAcademyBtn, 'click', () => upgradeAcademy());
 
     const seekSponsorshipBtn = document.getElementById('seek-sponsorship-btn');
-    if (seekSponsorshipBtn) {
-        seekSponsorshipBtn.addEventListener('click', () => showSponsorshipOffers());
-    }
+    eventManager.addEventListener(seekSponsorshipBtn, 'click', () => showSponsorshipOffers());
 
     const financialReportBtn = document.getElementById('financial-report-btn');
-    if (financialReportBtn) {
-        financialReportBtn.addEventListener('click', () => showFinancialReport());
-    }
+    eventManager.addEventListener(financialReportBtn, 'click', () => showFinancialReport());
 
     // Fan engagement buttons
     const runRadioPromoBtn = document.getElementById('run-radio-promo-btn');
-    if (runRadioPromoBtn) {
-        runRadioPromoBtn.addEventListener('click', () => runPromotion('radio'));
-    }
+    eventManager.addEventListener(runRadioPromoBtn, 'click', () => runPromotion('radio'));
 
     const runTvPromoBtn = document.getElementById('run-tv-promo-btn');
-    if (runTvPromoBtn) {
-        runTvPromoBtn.addEventListener('click', () => runPromotion('tv'));
-    }
+    eventManager.addEventListener(runTvPromoBtn, 'click', () => runPromotion('tv'));
 
     const buyNewspaperAdBtn = document.getElementById('buy-newspaper-ad-btn');
-    if (buyNewspaperAdBtn) {
-        buyNewspaperAdBtn.addEventListener('click', () => runPromotion('newspaper'));
-    }
+    eventManager.addEventListener(buyNewspaperAdBtn, 'click', () => runPromotion('newspaper'));
 
     // Stadium hotspot buttons
     const hotspotStand = document.getElementById('hotspot-stand');
-    if (hotspotStand) {
-        hotspotStand.addEventListener('click', () => expandStadium());
-    }
+    eventManager.addEventListener(hotspotStand, 'click', () => expandStadium());
 
     const hotspotConcessions = document.getElementById('hotspot-concessions');
-    if (hotspotConcessions) {
-        hotspotConcessions.addEventListener('click', () => upgradeConcessions());
-    }
+    eventManager.addEventListener(hotspotConcessions, 'click', () => upgradeConcessions());
 
     const hotspotStore = document.getElementById('hotspot-store');
-    if (hotspotStore) {
-        hotspotStore.addEventListener('click', () => upgradeStore());
-    }
+    eventManager.addEventListener(hotspotStore, 'click', () => upgradeStore());
 
     // Modal close buttons
     const newsCloseBtn = document.getElementById('news-close-btn');
     if (newsCloseBtn) {
-        newsCloseBtn.addEventListener('click', () => {
+        eventManager.addEventListener(newsCloseBtn, 'click', () => {
             const modal = document.getElementById('news-modal');
             if (modal) {
                 modal.style.display = 'none';
@@ -237,29 +216,21 @@ function setupEventListeners() {
 
     // Pre-season buttons
     const playPreseasonMatchBtn = document.getElementById('play-preseason-match-btn');
-    if (playPreseasonMatchBtn) {
-        playPreseasonMatchBtn.addEventListener('click', () => playPreSeasonMatch());
-    }
+    eventManager.addEventListener(playPreseasonMatchBtn, 'click', () => playPreSeasonMatch());
 
     const trainingCampBtn = document.getElementById('training-camp-btn');
-    if (trainingCampBtn) {
-        trainingCampBtn.addEventListener('click', () => runTrainingCamp());
-    }
+    eventManager.addEventListener(trainingCampBtn, 'click', () => runTrainingCamp());
 
     const advancePreseasonBtn = document.getElementById('advance-preseason-btn');
-    if (advancePreseasonBtn) {
-        advancePreseasonBtn.addEventListener('click', () => advancePreSeasonDay());
-    }
+    eventManager.addEventListener(advancePreseasonBtn, 'click', () => advancePreSeasonDay());
 
     const startSeasonBtn = document.getElementById('start-season-btn');
-    if (startSeasonBtn) {
-        startSeasonBtn.addEventListener('click', () => finishPreSeason());
-    }
+    eventManager.addEventListener(startSeasonBtn, 'click', () => finishPreSeason());
 
     // Save/Load buttons
     const quickSaveBtn = document.getElementById('quick-save-btn');
     if (quickSaveBtn) {
-        quickSaveBtn.addEventListener('click', () => {
+        eventManager.addEventListener(quickSaveBtn, 'click', () => {
             if (quickSave()) {
                 showNotification('Game saved successfully!', 'success');
             } else {
@@ -270,7 +241,7 @@ function setupEventListeners() {
 
     const quickLoadBtn = document.getElementById('quick-load-btn');
     if (quickLoadBtn) {
-        quickLoadBtn.addEventListener('click', () => {
+        eventManager.addEventListener(quickLoadBtn, 'click', () => {
             if (quickLoad()) {
                 showNotification('Game loaded successfully!', 'success');
                 updateUI();
@@ -283,7 +254,7 @@ function setupEventListeners() {
 
     const exportSaveBtn = document.getElementById('export-save-btn');
     if (exportSaveBtn) {
-        exportSaveBtn.addEventListener('click', () => {
+        eventManager.addEventListener(exportSaveBtn, 'click', () => {
             if (downloadSaveFile()) {
                 showNotification('Save file exported successfully!', 'success');
             } else {
@@ -294,7 +265,7 @@ function setupEventListeners() {
 
     const importSaveBtn = document.getElementById('import-save-btn');
     if (importSaveBtn) {
-        importSaveBtn.addEventListener('click', () => {
+        eventManager.addEventListener(importSaveBtn, 'click', () => {
             uploadSaveFile(
                 (filename) => {
                     showNotification(`Loaded save file: ${filename}`, 'success');
@@ -311,13 +282,13 @@ function setupEventListeners() {
 }
 
 /**
- * Initialize sidebar navigation
+ * Initialize sidebar navigation using EventManager
  */
 function initializeSidebar() {
     const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
 
     sidebarLinks.forEach(link => {
-        link.addEventListener('click', function (e) {
+        eventManager.addEventListener(link, 'click', function (e) {
             e.preventDefault();
 
             // Remove active class from all links

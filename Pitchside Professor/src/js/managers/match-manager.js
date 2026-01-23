@@ -36,13 +36,15 @@ export function initializeLeagueTable() {
 export function updateLeagueTable() {
     const { leagueTable } = gameState;
     const tbody = document.getElementById('table-body');
-    tbody.innerHTML = '';
 
     // Sort by points, then goal difference
     leagueTable.sort((a, b) => {
         if (b.points !== a.points) return b.points - a.points;
         return (b.goalsFor - b.goalsAgainst) - (a.goalsFor - a.goalsAgainst);
     });
+
+    // Use DocumentFragment for batch DOM insertion (performance optimization)
+    const fragment = document.createDocumentFragment();
 
     leagueTable.forEach((team, index) => {
         const row = document.createElement('tr');
@@ -66,8 +68,12 @@ export function updateLeagueTable() {
             <td>\${goalDiff > 0 ? '+' : ''}\${goalDiff}</td>
             <td>\${team.points}</td>
         `;
-        tbody.appendChild(row);
+        fragment.appendChild(row);
     });
+
+    // Single DOM update instead of multiple appendChild calls
+    tbody.innerHTML = '';
+    tbody.appendChild(fragment);
 }
 
 /**
