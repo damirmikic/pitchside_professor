@@ -73,6 +73,25 @@ export const GAME_CONSTANTS = {
     // Match events: rare flavour events that can nudge a result
     MATCH_EVENT_CHANCE: 0.25,
 
+    // Board expectations & sacking: job security drifts based on league position vs. expectation
+    BOARD_EXPECTATION_SLACK: 1,          // positions of slack before the board reacts
+    BOARD_PRESSURE_POSITIVE_DRIFT: 1,    // job security gained per matchday when meeting expectation
+    BOARD_PRESSURE_NEGATIVE_DRIFT: -2,   // job security lost per matchday when badly missing expectation
+    BOARD_PRESSURE_MISS_THRESHOLD: 3,    // positions below expectation before negative drift kicks in
+    SACKING_JOB_SECURITY_THRESHOLD: 0,
+
+    // Career mode: job offers shown on the job board after a sacking
+    JOB_OFFERS_PER_TIER: 2,              // weak / mid / strong clubs offered
+    JOB_OFFER_REPUTATION_PER_STRENGTH: 5, // requiredReputation = baseStrength × this
+
+    // Bankruptcy pressure
+    BANKRUPTCY_FORCED_SALE_STRENGTH_PENALTY: 5,
+    BANKRUPTCY_FORCED_SALE_JOB_SECURITY_PENALTY: 15,
+    BANKRUPTCY_BAILOUT_AMOUNT: 20000,
+
+    // Lifestyle upkeep: recurring personal cost charged periodically through the season
+    LIFESTYLE_BILLING_INTERVAL_MATCHDAYS: 4,
+
     // Lifestyle Costs
     LIFESTYLE_ITEMS: {
         apartment: { cost: 2000, reputation: 5, name: 'City Apartment' },

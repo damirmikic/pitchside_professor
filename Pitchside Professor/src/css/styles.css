@@ -1317,6 +1317,82 @@ span {
     font-weight: bold;
 }
 
+/* ===== SACKING SEQUENCE ===== */
+.sacking-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow-y: auto;
+    z-index: 9999;
+}
+
+.sacking-content {
+    text-align: center;
+    max-width: 500px;
+    padding: var(--spacing-lg);
+    margin: auto;
+}
+
+.sacking-cover-image {
+    max-width: 220px;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.sacking-content h2 {
+    color: var(--accent-gold);
+}
+
+.sacking-stats {
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+/* ===== JOB BOARD ===== */
+.job-offer-card {
+    background: var(--background-medium);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.job-offer-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent-gold);
+}
+
+.job-offer-card.locked-offer {
+    opacity: 0.6;
+}
+
+.job-offer-card.locked-offer:hover {
+    transform: none;
+}
+
+/* Hide the whole game UI (sidebar, main game view, fixtures panel) while a
+   full-screen page like the job board is active. Necessary because those
+   elements are plain siblings, not nested under a single toggleable page. */
+body.job-board-active .game-ui {
+    display: none !important;
+}
+
+/* #sidebar carries its own `display: block !important` rule, which beats a
+   plain class selector on specificity alone; match its ID specificity here. */
+body.job-board-active #sidebar {
+    display: none !important;
+}
+
 .reading-dots span:nth-child(1) {
     animation-delay: 0s;
 }

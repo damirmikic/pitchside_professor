@@ -12,10 +12,10 @@
 
 <body>
     <!-- MOBILE MENU TOGGLE -->
-    <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()">☰</button>
+    <button class="mobile-menu-toggle game-ui" onclick="toggleMobileSidebar()">☰</button>
 
     <!-- SIDEBAR NAVIGATION -->
-    <nav id="sidebar">
+    <nav id="sidebar" class="game-ui">
         <div class="sidebar-header">
             <h3>Pitchside Professor</h3>
             <div class="manager-info">
@@ -55,7 +55,7 @@
     </nav>
 
     <!-- MAIN CONTENT -->
-    <div id="main-content">
+    <div id="main-content" class="game-ui">
         <div id="page-game"></div>
         <main class="container">
         <div id="game-column-left">
@@ -407,6 +407,7 @@
                     <div id="job-security-bar-container" class="bar-container">
                         <div id="job-security-bar" class="bar"></div>
                     </div>
+                    <p><strong>Board Expectation:</strong> <span id="board-expectation-display">Not yet set</span></p>
                     <h5>Manager Lifestyle</h5>
                     <div id="lifestyle-items" class="management-grid"></div>
                 </div>
@@ -529,7 +530,7 @@
         </section>
         </div>
 
-        <section id="fixtures-section">
+        <section id="fixtures-section" class="game-ui">
             <div class="control-card">
                 <h3 id="next-matchday-header">Next Matchday</h3>
                 <p id="next-match-display">Team A vs Team B</p>

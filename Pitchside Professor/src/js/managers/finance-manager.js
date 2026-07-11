@@ -284,6 +284,38 @@ export function calculateSeasonEndRewards() {
 }
 
 /**
+ * Check for sustained financial distress. A single matchday in the red draws
+ * a board warning; two consecutive matchdays in the red trigger a forced
+ * asset sale that bails out the finances at the cost of team strength and
+ * job security.
+ */
+export function checkBankruptcy() {
+    const { clubData, financialHistory, managerData } = gameState;
+
+    if (clubData.finances >= 0) {
+        financialHistory.consecutiveNegativeMatchdays = 0;
+        return;
+    }
+
+    financialHistory.consecutiveNegativeMatchdays++;
+
+    if (financialHistory.consecutiveNegativeMatchdays === 1) {
+        showWarningPopup('Board Concern',
+            "The board is concerned about the club's mounting debt. Turn the finances around, or hard decisions will be made.");
+    } else if (financialHistory.consecutiveNegativeMatchdays >= 2) {
+        clubData.strength = Math.max(0, clubData.strength - GAME_CONSTANTS.BANKRUPTCY_FORCED_SALE_STRENGTH_PENALTY);
+        clubData.finances += GAME_CONSTANTS.BANKRUPTCY_BAILOUT_AMOUNT;
+        managerData.jobSecurity = Math.max(0, managerData.jobSecurity - GAME_CONSTANTS.BANKRUPTCY_FORCED_SALE_JOB_SECURITY_PENALTY);
+        financialHistory.consecutiveNegativeMatchdays = 0;
+
+        showWarningPopup('Forced Asset Sale!',
+            'The board sold key players to cover the debt. Team strength has dropped and your job security has taken a hit.');
+    }
+
+    updateUI();
+}
+
+/**
  * Trigger a financial takeover (random event)
  * @returns {boolean} True if takeover occurred
  */

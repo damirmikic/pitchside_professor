@@ -6,7 +6,9 @@
 import { gameState } from '../core/state-manager.js';
 import { GAME_CONSTANTS } from '../data/constants.js';
 import { showAnimatedPopup, showWarningPopup } from '../ui/notification-system.js';
-import { calculateMatchdayRevenue, processWeeklyWages } from './finance-manager.js';
+import { calculateMatchdayRevenue, processWeeklyWages, checkBankruptcy } from './finance-manager.js';
+import { chargeLifestyleUpkeep } from './lifestyle-manager.js';
+import { applyBoardPressure, checkForSacking } from './board-manager.js';
 import { updateUI, updateSidebarDisplays } from '../ui/ui-controller.js';
 import { rollWeightedDice } from '../utils/dice.js';
 
@@ -333,6 +335,9 @@ export function playMatchday() {
         // Process weekly wages for this matchday
         processWeeklyWages();
 
+        // Check for sustained financial distress
+        checkBankruptcy();
+
         // Squad fitness drains with every matchday played
         drainFitness();
 
@@ -341,9 +346,20 @@ export function playMatchday() {
         updateFixturesDisplay();
         updateUI();
 
+        // Board pressure: job security drifts based on league position vs. expectation
+        applyBoardPressure();
+
+        // Lifestyle upkeep is billed periodically, not every matchday
+        if (gameState.currentMatchday % GAME_CONSTANTS.LIFESTYLE_BILLING_INTERVAL_MATCHDAYS === 0) {
+            chargeLifestyleUpkeep();
+        }
+
         // Show match result after a delay
         setTimeout(() => {
             showMatchResult(result, matchdayFinancials);
+            // Job security from the match result is applied synchronously above;
+            // check whether it was enough to cost the manager their job
+            checkForSacking();
         }, 1500);
 
         gameState.currentMatchday++;
@@ -355,6 +371,7 @@ export function playMatchday() {
         // Check if season is complete
         if (isSeasonComplete()) {
             setTimeout(() => {
+                if (gameState.isSacked) return;
                 // Import and call endSeason
                 import('./season-manager.js').then(module => {
                     module.endSeason();

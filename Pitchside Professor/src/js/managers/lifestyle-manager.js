@@ -27,6 +27,23 @@ export function initializeLifestyle() {
 }
 
 /**
+ * Charge the manager's personal wealth for the upkeep of owned lifestyle
+ * items. Called periodically (every few matchdays), not every matchday, so
+ * lifestyle is a recurring budget line rather than a one-time purchase.
+ */
+export function chargeLifestyleUpkeep() {
+    const { managerData } = gameState;
+    if (managerData.lifestyle.length === 0) return;
+
+    const totalCost = managerData.lifestyle.reduce((sum, item) => sum + item.cost, 0);
+    if (totalCost === 0) return;
+
+    managerData.wealth = Math.max(0, managerData.wealth - totalCost);
+    showNotification('Lifestyle Upkeep', `$${totalCost.toLocaleString()} deducted for lifestyle upkeep.`, 'info');
+    updateLifestyleUI();
+}
+
+/**
  * Purchase a lifestyle item
  * @param {string} itemType Type of lifestyle item
  * @param {number} cost Cost of the item
