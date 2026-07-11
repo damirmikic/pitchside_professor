@@ -4,10 +4,12 @@
  */
 
 import { gameState } from '../core/state-manager.js';
+import { GAME_CONSTANTS } from '../data/constants.js';
 import { showAnimatedPopup, showSuccessPopup } from '../ui/notification-system.js';
-import { updateUI } from '../ui/ui-controller.js';
-import { calculateSeasonEndRewards, generateSponsorshipOffers, calculateSeasonTicketSales, showFinancialReport } from './finance-manager.js';
+import { updateUI, updateSidebarDisplays } from '../ui/ui-controller.js';
+import { calculateSeasonEndRewards, generateSponsorshipOffers, calculateSeasonTicketSales, showFinancialReport, triggerFinancialTakeover } from './finance-manager.js';
 import { initializeLeagueTable, generateFixtures } from './match-manager.js';
+import { startPreSeason } from './preseason-manager.js';
 
 /**
  * End the current season
@@ -18,29 +20,32 @@ export function endSeason() {
     const { currentSeason } = gameState;
 
     let endSeasonMessage = `
-        <h3>Season \${currentSeason} Complete!</h3>
-        <p><strong>Final Position:</strong> \${finalPosition}\${getOrdinalSuffix(finalPosition)}</p>
-        <p><strong>TV Revenue:</strong> $\${seasonRewards.tvRevenue.toLocaleString()}</p>
+        <h3>Season ${currentSeason} Complete!</h3>
+        <p><strong>Final Position:</strong> ${finalPosition}${getOrdinalSuffix(finalPosition)}</p>
+        <p><strong>TV Revenue:</strong> $${seasonRewards.tvRevenue.toLocaleString()}</p>
     `;
 
     if (seasonRewards.sponsorshipBonus > 0) {
-        endSeasonMessage += `<p><strong>Sponsorship Bonus:</strong> $\${seasonRewards.sponsorshipBonus.toLocaleString()}</p>`;
+        endSeasonMessage += `<p><strong>Sponsorship Bonus:</strong> $${seasonRewards.sponsorshipBonus.toLocaleString()}</p>`;
     }
 
-    endSeasonMessage += `<p><strong>Total Season Revenue:</strong> $\${(seasonRewards.tvRevenue + seasonRewards.sponsorshipBonus).toLocaleString()}</p>`;
+    endSeasonMessage += `<p><strong>Total Season Revenue:</strong> $${(seasonRewards.tvRevenue + seasonRewards.sponsorshipBonus).toLocaleString()}</p>`;
 
     showAnimatedPopup('Season Complete', endSeasonMessage, 'success', [
         { text: 'Continue to Next Season', action: () => { startNewSeason(); closePopup(); } },
         { text: 'View Financial Report', action: () => showFinancialReport() }
     ]);
+
+    // Rare end-of-season investor takeover (5% chance)
+    triggerFinancialTakeover();
 }
 
 /**
  * Start a new season
  */
 export function startNewSeason() {
-    const { clubData, managerData } = gameState;
-    
+    const { clubData, managerData, preSeasonData } = gameState;
+
     gameState.currentSeason++;
     gameState.currentMatchday = 1;
 
@@ -67,9 +72,22 @@ export function startNewSeason() {
     // Calculate new season ticket sales
     calculateSeasonTicketSales();
 
-    updateUI();
+    // Reset pre-season state so preparation happens every season, not just the first
+    preSeasonData.daysLeft = GAME_CONSTANTS.PRESEASON_DAYS;
+    preSeasonData.matchesPlayed = 0;
+    preSeasonData.teamFitness = GAME_CONSTANTS.PRESEASON_INITIAL_FITNESS;
+    preSeasonData.teamChemistry = GAME_CONSTANTS.PRESEASON_INITIAL_CHEMISTRY;
+    preSeasonData.seasonTicketsSoldToday = 0;
+    preSeasonData.scheduledMatches = [];
+    preSeasonData.nextMatchDay = null;
 
-    showSuccessPopup('New Season!', `Welcome to Season \${gameState.currentSeason}! New sponsorship offers are available.`);
+    updateUI();
+    updateSidebarDisplays();
+
+    showSuccessPopup('New Season!', `Welcome to Season ${gameState.currentSeason}! New sponsorship offers are available.`);
+
+    // Enter pre-season preparation before the new league campaign begins
+    startPreSeason();
 }
 
 /**

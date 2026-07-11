@@ -111,13 +111,38 @@ export function showConfirmPopup(title, message, onConfirm, onCancel = null) {
 
 /**
  * Show a temporary notification toast
- * @param {string} message - Notification message
- * @param {string} type - Notification type (success, error, info)
+ * Supports two call styles used throughout the codebase:
+ *   showNotification(message, type)
+ *   showNotification(title, message, type)
+ * @param {string} titleOrMessage - Notification title (3-arg form) or message (2-arg form)
+ * @param {string} [messageOrType] - Notification message (3-arg form) or type (2-arg form)
+ * @param {string} [maybeType] - Notification type when called with a title (success, error, warning, info)
  */
-export function showNotification(message, type = 'info') {
+export function showNotification(titleOrMessage, messageOrType, maybeType) {
+    let title = null;
+    let message;
+    let type;
+
+    if (maybeType !== undefined) {
+        title = titleOrMessage;
+        message = messageOrType;
+        type = maybeType;
+    } else {
+        message = titleOrMessage;
+        type = messageOrType || 'info';
+    }
+
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
-    notification.textContent = message;
+
+    if (title) {
+        const titleEl = document.createElement('strong');
+        titleEl.textContent = title;
+        notification.appendChild(titleEl);
+        notification.appendChild(document.createTextNode(`: ${message}`));
+    } else {
+        notification.textContent = message;
+    }
 
     document.body.appendChild(notification);
 

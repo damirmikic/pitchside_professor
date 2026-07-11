@@ -4,6 +4,7 @@
  */
 
 import { gameState } from '../core/state-manager.js';
+import { GAME_CONSTANTS } from '../data/constants.js';
 import { showAnimatedPopup, showWarningPopup, showSuccessPopup, closePopup } from '../ui/notification-system.js';
 import { updateUI } from '../ui/ui-controller.js';
 import { showNotification } from '../ui/notification-system.js';
@@ -17,9 +18,6 @@ export function initializeFinancialSystem() {
 
     // Generate initial sponsorship offers
     generateSponsorshipOffers();
-
-    // Set up weekly wage payments
-    gameState.financialHistory.lastWagePayment = Date.now();
 }
 
 /**
@@ -49,7 +47,7 @@ function updateSeasonTicketDisplay() {
     const { fanData } = gameState;
     const seasonTicketsInfo = document.getElementById('season-tickets-info');
     if (seasonTicketsInfo) {
-        seasonTicketsInfo.textContent = `Season tickets sold: \${fanData.seasonTicketsSold.toLocaleString()}/\${fanData.maxSeasonTickets.toLocaleString()}`;
+        seasonTicketsInfo.textContent = `Season tickets sold: ${fanData.seasonTicketsSold.toLocaleString()}/${fanData.maxSeasonTickets.toLocaleString()}`;
     }
 }
 
@@ -106,11 +104,11 @@ export function showSponsorshipOffers() {
     modal.innerHTML = `
         <div class="sponsorship-modal-content">
             <div class="sponsorship-header">
-                <h2>Sponsorship Offers - Season \${gameState.currentSeason}</h2>
+                <h2>Sponsorship Offers - Season ${gameState.currentSeason}</h2>
                 <button class="close-sponsorship-modal">&times;</button>
             </div>
             <div class="sponsorship-offers-list">
-                \${generateSponsorshipOffersHTML()}
+                ${generateSponsorshipOffersHTML()}
             </div>
         </div>
     `;
@@ -151,28 +149,28 @@ export function generateSponsorshipOffersHTML() {
         return `
             <div class="sponsorship-offer-card">
                 <div class="offer-header">
-                    <h3>\${offer.name}</h3>
-                    <span class="offer-type">\${offer.type}</span>
+                    <h3>${offer.name}</h3>
+                    <span class="offer-type">${offer.type}</span>
                 </div>
                 <div class="offer-details">
                     <div class="offer-row">
                         <span class="label">Base Payment:</span>
-                        <span class="value">$\${offer.basePayment.toLocaleString()}</span>
+                        <span class="value">$${offer.basePayment.toLocaleString()}</span>
                     </div>
                     <div class="offer-row">
                         <span class="label">Performance Bonus:</span>
-                        <span class="value">$\${offer.performanceBonus.toLocaleString()}</span>
+                        <span class="value">$${offer.performanceBonus.toLocaleString()}</span>
                     </div>
                     <div class="offer-row">
                         <span class="label">Bonus Condition:</span>
-                        <span class="value">\${conditionText}</span>
+                        <span class="value">${conditionText}</span>
                     </div>
                     <div class="offer-total">
                         <span class="label">Potential Total:</span>
-                        <span class="value total-amount">$\${(offer.basePayment + offer.performanceBonus).toLocaleString()}</span>
+                        <span class="value total-amount">$${(offer.basePayment + offer.performanceBonus).toLocaleString()}</span>
                     </div>
                 </div>
-                <button class="accept-offer-btn btn btn-primary" data-offer-id="\${offer.id}">
+                <button class="accept-offer-btn btn btn-primary" data-offer-id="${offer.id}">
                     Accept Offer
                 </button>
             </div>
@@ -194,12 +192,12 @@ export function acceptSponsorshipOffer(offerId) {
 
         const sponsorshipInfo = document.getElementById('sponsorship-info');
         if (sponsorshipInfo) {
-            sponsorshipInfo.textContent = `\${offer.name} - $\${offer.basePayment.toLocaleString()} + bonuses`;
+            sponsorshipInfo.textContent = `${offer.name} - $${offer.basePayment.toLocaleString()} + bonuses`;
         }
 
         updateUI();
         showSuccessPopup('Sponsorship Signed!',
-            `You've signed with \${offer.name} for $\${offer.basePayment.toLocaleString()} plus performance bonuses!`);
+            `You've signed with ${offer.name} for $${offer.basePayment.toLocaleString()} plus performance bonuses!`);
 
         // Close any open popups
         const popups = document.querySelectorAll('.animated-popup');
@@ -208,25 +206,21 @@ export function acceptSponsorshipOffer(offerId) {
 }
 
 /**
- * Process weekly wages if due
+ * Process weekly wages (charged once per matchday, since a matchday represents a game week)
  */
 export function processWeeklyWages() {
-    const { clubData, financialHistory } = gameState;
-    const now = Date.now();
-    const weekInMs = 7 * 24 * 60 * 60 * 1000;
+    const { clubData, financialHistory, currentSeason, currentMatchday } = gameState;
 
-    if (now - financialHistory.lastWagePayment >= weekInMs) {
-        clubData.finances -= clubData.weeklyWages;
-        financialHistory.lastWagePayment = now;
-        financialHistory.weeklyExpenses.push({
-            date: new Date(),
-            amount: clubData.weeklyWages,
-            type: 'wages'
-        });
+    clubData.finances -= clubData.weeklyWages;
+    financialHistory.weeklyExpenses.push({
+        season: currentSeason,
+        matchday: currentMatchday,
+        amount: clubData.weeklyWages,
+        type: 'wages'
+    });
 
-        showNotification('Weekly Wages', `$\${clubData.weeklyWages.toLocaleString()} paid in player wages`, 'warning');
-        updateUI();
-    }
+    showNotification('Weekly Wages', `$${clubData.weeklyWages.toLocaleString()} paid in player wages`, 'warning');
+    updateUI();
 }
 
 /**
@@ -237,9 +231,14 @@ export function calculateMatchdayRevenue() {
     const { clubData, fanData } = gameState;
     const attendance = Math.floor(clubData.stadiumCapacity * (0.6 + (fanData.happiness / 100) * 0.4));
     const ticketRevenue = attendance * fanData.matchdayTicketPrice;
-    const concessionRevenue = attendance * 5; // $5 per person average
+    const concessionRevenuePerFan = GAME_CONSTANTS.CONCESSION_REVENUE_PER_FAN_BASE +
+        (clubData.concessionsLevel - 1) * GAME_CONSTANTS.CONCESSION_REVENUE_PER_FAN_PER_LEVEL;
+    const merchandiseRevenuePerFan = GAME_CONSTANTS.MERCHANDISE_REVENUE_PER_FAN_BASE +
+        (clubData.storeLevel - 1) * GAME_CONSTANTS.MERCHANDISE_REVENUE_PER_FAN_PER_LEVEL;
+    const concessionRevenue = attendance * concessionRevenuePerFan;
+    const merchandiseRevenue = attendance * merchandiseRevenuePerFan;
 
-    clubData.matchdayRevenue = ticketRevenue + concessionRevenue;
+    clubData.matchdayRevenue = ticketRevenue + concessionRevenue + merchandiseRevenue;
     clubData.finances += clubData.matchdayRevenue;
 
     return {
@@ -298,7 +297,7 @@ export function triggerFinancialTakeover() {
         managerData.reputation += 10;
 
         showSuccessPopup('Financial Takeover!',
-            `A wealthy investor has taken over the club! You've received $\${takeoverAmount.toLocaleString()} in new investment!`);
+            `A wealthy investor has taken over the club! You've received $${takeoverAmount.toLocaleString()} in new investment!`);
 
         updateUI();
         return true;
@@ -313,20 +312,20 @@ export function showFinancialReport() {
     const { clubData, currentSeason } = gameState;
     
     const report = `
-        <h3>Financial Report - Season \${currentSeason}</h3>
+        <h3>Financial Report - Season ${currentSeason}</h3>
         <div class="financial-report">
             <h4>Revenue</h4>
-            <p>Season Tickets: $\${clubData.seasonTicketRevenue.toLocaleString()}</p>
-            <p>Matchday Revenue: $\${clubData.matchdayRevenue.toLocaleString()}</p>
-            <p>TV Revenue: $\${clubData.tvRevenue.toLocaleString()}</p>
-            <p>Sponsorship: $\${clubData.sponsorship ? clubData.sponsorship.basePayment.toLocaleString() : '0'}</p>
+            <p>Season Tickets: $${clubData.seasonTicketRevenue.toLocaleString()}</p>
+            <p>Matchday Revenue: $${clubData.matchdayRevenue.toLocaleString()}</p>
+            <p>TV Revenue: $${clubData.tvRevenue.toLocaleString()}</p>
+            <p>Sponsorship: $${clubData.sponsorship ? clubData.sponsorship.basePayment.toLocaleString() : '0'}</p>
             
             <h4>Expenses</h4>
-            <p>Weekly Wages: $\${clubData.weeklyWages.toLocaleString()}</p>
-            <p>Transfer Budget: $\${clubData.transferBudget.toLocaleString()}</p>
+            <p>Weekly Wages: $${clubData.weeklyWages.toLocaleString()}</p>
+            <p>Transfer Budget: $${clubData.transferBudget.toLocaleString()}</p>
             
             <h4>Current Balance</h4>
-            <p><strong>Club Finances: $\${clubData.finances.toLocaleString()}</strong></p>
+            <p><strong>Club Finances: $${clubData.finances.toLocaleString()}</strong></p>
         </div>
     `;
 

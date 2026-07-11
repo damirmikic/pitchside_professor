@@ -5,15 +5,18 @@
 
 import { gameState } from '../core/state-manager.js';
 import { showAnimatedPopup, showWarningPopup } from '../ui/notification-system.js';
-import { calculateMatchdayRevenue, processWeeklyWages, triggerFinancialTakeover } from './finance-manager.js';
-import { updateUI } from '../ui/ui-controller.js';
+import { calculateMatchdayRevenue, processWeeklyWages } from './finance-manager.js';
+import { updateUI, updateSidebarDisplays } from '../ui/ui-controller.js';
+import { rollWeightedDice } from '../utils/dice.js';
 
 /**
  * Initialize the league table with all teams
+ * Strength is stored on the same 0-100 scale as clubData.strength (baseStrength × 10)
+ * so that club upgrades have a real effect on match simulation.
  */
 export function initializeLeagueTable() {
-    const { selectedLeague, selectedTeam, leagues } = gameState;
-    
+    const { selectedLeague, selectedTeam, leagues, clubData } = gameState;
+
     gameState.leagueTable = leagues[selectedLeague].map(team => ({
         name: team.name,
         played: 0,
@@ -23,11 +26,23 @@ export function initializeLeagueTable() {
         goalsFor: 0,
         goalsAgainst: 0,
         points: 0,
-        strength: team.baseStrength,
+        strength: team.name === selectedTeam ? clubData.strength : team.baseStrength * 10,
         isPlayer: team.name === selectedTeam
     }));
 
     updateLeagueTable();
+}
+
+/**
+ * Sync the player's league-table strength entry with clubData.strength
+ * so training/upgrades and pre-season bonuses affect match outcomes.
+ */
+function syncPlayerStrength() {
+    const { leagueTable, selectedTeam, clubData } = gameState;
+    const playerTeam = leagueTable.find(team => team.name === selectedTeam);
+    if (playerTeam) {
+        playerTeam.strength = clubData.strength;
+    }
 }
 
 /**
@@ -57,16 +72,16 @@ export function updateLeagueTable() {
 
         const goalDiff = team.goalsFor - team.goalsAgainst;
         row.innerHTML = `
-            <td>\${index + 1}</td>
-            <td>\${team.name}</td>
-            <td>\${team.played}</td>
-            <td>\${team.won}</td>
-            <td>\${team.drawn}</td>
-            <td>\${team.lost}</td>
-            <td>\${team.goalsFor}</td>
-            <td>\${team.goalsAgainst}</td>
-            <td>\${goalDiff > 0 ? '+' : ''}\${goalDiff}</td>
-            <td>\${team.points}</td>
+            <td>${index + 1}</td>
+            <td>${team.name}</td>
+            <td>${team.played}</td>
+            <td>${team.won}</td>
+            <td>${team.drawn}</td>
+            <td>${team.lost}</td>
+            <td>${team.goalsFor}</td>
+            <td>${team.goalsAgainst}</td>
+            <td>${goalDiff > 0 ? '+' : ''}${goalDiff}</td>
+            <td>${team.points}</td>
         `;
         fragment.appendChild(row);
     });
@@ -77,16 +92,20 @@ export function updateLeagueTable() {
 }
 
 /**
- * Generate fixtures for the entire season using round-robin algorithm
+ * Generate fixtures for the entire season using round-robin algorithm.
+ * The circle method only produces (n-1) unique rounds before the rotation
+ * repeats, so the second half of the season is built by mirroring the first
+ * half's fixtures with home/away swapped (true "reverse fixture" second leg).
  */
 export function generateFixtures() {
     const { selectedLeague, leagues } = gameState;
     gameState.fixtures = [];
     const teams = [...leagues[selectedLeague]];
-    const totalMatchdays = (teams.length - 1) * 2;
+    const firstHalfRounds = teams.length - 1;
+    const firstHalfFixtures = [];
 
-    // Simple round-robin fixture generation
-    for (let matchday = 1; matchday <= totalMatchdays; matchday++) {
+    // Round-robin (circle method) for the first half of the season
+    for (let matchday = 1; matchday <= firstHalfRounds; matchday++) {
         const matchdayFixtures = [];
         for (let i = 0; i < teams.length / 2; i++) {
             const home = teams[i];
@@ -101,12 +120,25 @@ export function generateFixtures() {
                 });
             }
         }
-        gameState.fixtures.push(matchdayFixtures);
+        firstHalfFixtures.push(matchdayFixtures);
 
         // Rotate teams for next matchday
         const lastTeam = teams.pop();
         teams.splice(1, 0, lastTeam);
     }
+
+    // Second half: same pairings, home and away reversed
+    const secondHalfFixtures = firstHalfFixtures.map(matchdayFixtures =>
+        matchdayFixtures.map(fixture => ({
+            home: fixture.away,
+            away: fixture.home,
+            played: false,
+            homeGoals: null,
+            awayGoals: null
+        }))
+    );
+
+    gameState.fixtures = [...firstHalfFixtures, ...secondHalfFixtures];
 
     updateFixturesDisplay();
 }
@@ -123,14 +155,14 @@ export function updateFixturesDisplay() {
 
     fixtures.forEach((matchdayFixtures, matchdayIndex) => {
         const matchdayDiv = document.createElement('div');
-        matchdayDiv.innerHTML = `<h4>Matchday \${matchdayIndex + 1}</h4>`;
+        matchdayDiv.innerHTML = `<h4>Matchday ${matchdayIndex + 1}</h4>`;
 
         matchdayFixtures.forEach(fixture => {
             const fixtureDiv = document.createElement('div');
             if (fixture.played) {
-                fixtureDiv.innerHTML = `\${fixture.home} \${fixture.homeGoals} - \${fixture.awayGoals} \${fixture.away}`;
+                fixtureDiv.innerHTML = `${fixture.home} ${fixture.homeGoals} - ${fixture.awayGoals} ${fixture.away}`;
             } else {
-                fixtureDiv.innerHTML = `\${fixture.home} vs \${fixture.away}`;
+                fixtureDiv.innerHTML = `${fixture.home} vs ${fixture.away}`;
             }
             matchdayDiv.appendChild(fixtureDiv);
         });
@@ -144,8 +176,8 @@ export function updateFixturesDisplay() {
     const nextMatchdayHeader = document.getElementById('next-matchday-header');
     
     if (nextFixture && nextMatchDisplay && nextMatchdayHeader) {
-        nextMatchDisplay.textContent = `\${nextFixture.home} vs \${nextFixture.away}`;
-        nextMatchdayHeader.textContent = `Next Matchday \${currentMatchday}`;
+        nextMatchDisplay.textContent = `${nextFixture.home} vs ${nextFixture.away}`;
+        nextMatchdayHeader.textContent = `Next Matchday ${currentMatchday}`;
     } else if (nextMatchDisplay && nextMatchdayHeader) {
         nextMatchDisplay.textContent = 'Season Complete';
         nextMatchdayHeader.textContent = 'Season Complete';
@@ -183,6 +215,9 @@ export function playMatchday() {
     const tacticSelect = document.getElementById('tactic-select');
     const tactic = tacticSelect ? tacticSelect.value : 'balanced';
 
+    // Keep the player's league-table strength in sync with club upgrades before simulating
+    syncPlayerStrength();
+
     // Show dice animation first
     animateDiceRoll(() => {
         // Simulate player match
@@ -204,11 +239,8 @@ export function playMatchday() {
         // Calculate matchday revenue
         const matchdayFinancials = calculateMatchdayRevenue();
 
-        // Process weekly wages (if due)
+        // Process weekly wages for this matchday
         processWeeklyWages();
-
-        // Check for financial takeover (rare event)
-        triggerFinancialTakeover();
 
         // Update displays
         updateLeagueTable();
@@ -221,6 +253,7 @@ export function playMatchday() {
         }, 1500);
 
         gameState.currentMatchday++;
+        updateSidebarDisplays();
 
         // Auto-save after matchday
         gameState.autoSave();
@@ -286,24 +319,6 @@ function updateDiceDisplay(homeGoals, awayGoals) {
     dice2Faces.forEach(face => {
         face.textContent = awayGoals;
     });
-}
-
-/**
- * Weighted dice function (0-5, weighted toward lower values)
- * @returns {number} Dice roll result (0-5)
- */
-function rollWeightedDice() {
-    const weights = [35, 25, 20, 10, 7, 3]; // Percentages for 0,1,2,3,4,5
-    const random = Math.random() * 100;
-    let cumulative = 0;
-
-    for (let i = 0; i < weights.length; i++) {
-        cumulative += weights[i];
-        if (random <= cumulative) {
-            return i;
-        }
-    }
-    return 0; // Fallback
 }
 
 /**
@@ -421,20 +436,20 @@ export function showMatchResult(result, matchdayFinancials) {
 
         if (isWin) {
             title = 'Victory!';
-            message = `\${fixture.home} \${homeGoals} - \${awayGoals} \${fixture.away}`;
+            message = `${fixture.home} ${homeGoals} - ${awayGoals} ${fixture.away}`;
             type = 'success';
             managerData.reputation += 2;
             managerData.jobSecurity = Math.min(100, managerData.jobSecurity + 5);
             fanData.happiness = Math.min(100, fanData.happiness + 10);
         } else if (isDraw) {
             title = 'Draw';
-            message = `\${fixture.home} \${homeGoals} - \${awayGoals} \${fixture.away}`;
+            message = `${fixture.home} ${homeGoals} - ${awayGoals} ${fixture.away}`;
             type = 'warning';
             managerData.reputation += 1;
             fanData.happiness = Math.max(0, fanData.happiness - 2);
         } else {
             title = 'Defeat';
-            message = `\${fixture.home} \${homeGoals} - \${awayGoals} \${fixture.away}`;
+            message = `${fixture.home} ${homeGoals} - ${awayGoals} ${fixture.away}`;
             type = 'error';
             managerData.reputation = Math.max(0, managerData.reputation - 1);
             managerData.jobSecurity = Math.max(0, managerData.jobSecurity - 3);
@@ -460,7 +475,7 @@ export function showMatchResult(result, matchdayFinancials) {
     // Update result display
     const resultDisplay = document.getElementById('result-display');
     if (resultDisplay) {
-        resultDisplay.textContent = `\${fixture.home} \${homeGoals} - \${awayGoals} \${fixture.away}`;
+        resultDisplay.textContent = `${fixture.home} ${homeGoals} - ${awayGoals} ${fixture.away}`;
     }
 }
 
@@ -522,18 +537,18 @@ function showNewsModal(matchResult) {
     if (!modal || !title || !roundNumber || !playerHeadline || !playerArticle) return;
 
     // Set newspaper content based on match result
-    title.textContent = `\${selectedLeague} Gazette`;
+    title.textContent = `${selectedLeague} Gazette`;
     roundNumber.textContent = currentMatchday - 1;
 
     if (matchResult.isWin) {
-        playerHeadline.textContent = `\${selectedTeam} Triumph in Spectacular Fashion!`;
-        playerArticle.textContent = `Manager's tactical brilliance shines as \${selectedTeam} secure a convincing victory. The fans are ecstatic with this performance, and the board couldn't be happier with the results.`;
+        playerHeadline.textContent = `${selectedTeam} Triumph in Spectacular Fashion!`;
+        playerArticle.textContent = `Manager's tactical brilliance shines as ${selectedTeam} secure a convincing victory. The fans are ecstatic with this performance, and the board couldn't be happier with the results.`;
     } else if (matchResult.isDraw) {
-        playerHeadline.textContent = `\${selectedTeam} Hold Their Ground`;
-        playerArticle.textContent = `A hard-fought draw for \${selectedTeam} as they showed resilience and determination. While not the result fans hoped for, the team's fighting spirit was evident throughout the match.`;
+        playerHeadline.textContent = `${selectedTeam} Hold Their Ground`;
+        playerArticle.textContent = `A hard-fought draw for ${selectedTeam} as they showed resilience and determination. While not the result fans hoped for, the team's fighting spirit was evident throughout the match.`;
     } else {
-        playerHeadline.textContent = `\${selectedTeam} Suffer Disappointing Defeat`;
-        playerArticle.textContent = `Questions are being raised about the manager's tactics after \${selectedTeam}'s poor performance. Fans are growing restless, and pressure is mounting on the coaching staff.`;
+        playerHeadline.textContent = `${selectedTeam} Suffer Disappointing Defeat`;
+        playerArticle.textContent = `Questions are being raised about the manager's tactics after ${selectedTeam}'s poor performance. Fans are growing restless, and pressure is mounting on the coaching staff.`;
     }
 
     modal.style.display = 'flex';
