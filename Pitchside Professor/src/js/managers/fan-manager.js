@@ -21,17 +21,17 @@ export function runPromotion(type) {
 
     if (clubData.finances >= cost) {
         showConfirmPopup(
-            `\${type.charAt(0).toUpperCase() + type.slice(1)} Promotion`,
-            `Run a \${type} promotion for $\${cost.toLocaleString()}? This will increase fan happiness by \${effect} points.`,
+            `${type.charAt(0).toUpperCase() + type.slice(1)} Promotion`,
+            `Run a ${type} promotion for $${cost.toLocaleString()}? This will increase fan happiness by ${effect} points.`,
             () => {
                 clubData.finances -= cost;
                 fanData.happiness = Math.min(100, fanData.happiness + effect);
                 updateUI();
-                showSuccessPopup('Promotion Successful!', `Fan happiness increased by \${effect} points.`);
+                showSuccessPopup('Promotion Successful!', `Fan happiness increased by ${effect} points.`);
             }
         );
     } else {
-        showErrorPopup('Insufficient Funds', `You need $\${cost.toLocaleString()} for this promotion.`);
+        showErrorPopup('Insufficient Funds', `You need $${cost.toLocaleString()} for this promotion.`);
     }
 }
 
@@ -49,7 +49,7 @@ export function holdPressConference() {
     ];
     
     const message = messages[Math.floor(Math.random() * messages.length)];
-    showNotification('Press Conference', `Manager: "\${message}"`, 'info');
+    showNotification('Press Conference', `Manager: "${message}"`, 'info');
     
     // Small reputation boost
     managerData.reputation += 1;

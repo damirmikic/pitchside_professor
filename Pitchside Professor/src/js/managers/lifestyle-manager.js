@@ -36,7 +36,7 @@ export function purchaseLifestyleItem(itemType, cost, reputation) {
     const { managerData } = gameState;
     
     if (managerData.wealth < cost) {
-        showNotification('Insufficient Funds', `You need $\${cost.toLocaleString()} to afford this lifestyle upgrade.`, 'error');
+        showNotification('Insufficient Funds', `You need $${cost.toLocaleString()} to afford this lifestyle upgrade.`, 'error');
         return;
     }
     
@@ -75,7 +75,7 @@ export function purchaseLifestyleItem(itemType, cost, reputation) {
     // Add reputation
     managerData.reputation += reputation;
     
-    showNotification('Lifestyle Upgrade', `You've upgraded your lifestyle! +\${reputation} reputation`, 'success');
+    showNotification('Lifestyle Upgrade', `You've upgraded your lifestyle! +${reputation} reputation`, 'success');
     
     updateLifestyleUI();
     updateSidebarDisplays();
@@ -114,7 +114,7 @@ export function updateLifestyleUI() {
         
         if (currentItems) {
             currentItems.innerHTML = managerData.lifestyle.map(item => 
-                `<p>\${itemNames[item.type]} - $\${item.cost.toLocaleString()}/month</p>`
+                `<p>${itemNames[item.type]} - $${item.cost.toLocaleString()}/month</p>`
             ).join('');
         }
         

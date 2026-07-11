@@ -31,6 +31,8 @@ class GameState {
             strength: GAME_CONSTANTS.INITIAL_CLUB_STRENGTH,
             trainingLevel: 1,
             academyLevel: 1,
+            concessionsLevel: 1,
+            storeLevel: 1,
             stadiumLevel: GAME_CONSTANTS.STADIUM_INITIAL_LEVEL,
             stadiumCapacity: GAME_CONSTANTS.STADIUM_CAPACITY_MIN +
                 Math.floor(Math.random() * (GAME_CONSTANTS.STADIUM_CAPACITY_MAX - GAME_CONSTANTS.STADIUM_CAPACITY_MIN)),

@@ -233,7 +233,7 @@ export function toggleMobileSidebar() {
 
 /**
  * Open a tab using cached element
- * @param {Event} evt - Click event
+ * @param {Event|null} evt - Click event (null when called programmatically, e.g. from season transitions)
  * @param {string} tabName - Name of tab to open
  */
 export function openTab(evt, tabName) {
@@ -251,7 +251,9 @@ export function openTab(evt, tabName) {
     if (targetTab) {
         targetTab.classList.add("active");
     }
-    evt.currentTarget.classList.add("active");
+    if (evt && evt.currentTarget) {
+        evt.currentTarget.classList.add("active");
+    }
 }
 
 /**

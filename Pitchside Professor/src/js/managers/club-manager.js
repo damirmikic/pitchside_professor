@@ -4,6 +4,7 @@
  */
 
 import { gameState } from '../core/state-manager.js';
+import { GAME_CONSTANTS } from '../data/constants.js';
 import { showConfirmPopup, showErrorPopup, showSuccessPopup } from '../ui/notification-system.js';
 import { updateUI } from '../ui/ui-controller.js';
 
@@ -12,12 +13,12 @@ import { updateUI } from '../ui/ui-controller.js';
  */
 export function upgradeTraining() {
     const { clubData, managerData } = gameState;
-    const cost = clubData.trainingLevel * 50000;
+    const cost = clubData.trainingLevel * GAME_CONSTANTS.TRAINING_UPGRADE_MULTIPLIER;
     
     if (clubData.finances >= cost) {
         showConfirmPopup(
             'Upgrade Training',
-            `Upgrade training facilities to level \${clubData.trainingLevel + 1} for $\${cost.toLocaleString()}?`,
+            `Upgrade training facilities to level ${clubData.trainingLevel + 1} for $${cost.toLocaleString()}?`,
             () => {
                 clubData.finances -= cost;
                 clubData.trainingLevel++;
@@ -25,7 +26,7 @@ export function upgradeTraining() {
                 
                 const upgradeBtn = document.getElementById('upgrade-training-btn');
                 if (upgradeBtn) {
-                    upgradeBtn.textContent = `Upgrade Training (Lvl \${clubData.trainingLevel})`;
+                    upgradeBtn.textContent = `Upgrade Training (Lvl ${clubData.trainingLevel})`;
                 }
                 
                 updateUI();
@@ -33,7 +34,7 @@ export function upgradeTraining() {
             }
         );
     } else {
-        showErrorPopup('Insufficient Funds', `You need $\${cost.toLocaleString()} to upgrade training.`);
+        showErrorPopup('Insufficient Funds', `You need $${cost.toLocaleString()} to upgrade training.`);
     }
 }
 
@@ -42,12 +43,12 @@ export function upgradeTraining() {
  */
 export function upgradeAcademy() {
     const { clubData, managerData } = gameState;
-    const cost = clubData.academyLevel * 75000;
+    const cost = clubData.academyLevel * GAME_CONSTANTS.ACADEMY_UPGRADE_MULTIPLIER;
     
     if (clubData.finances >= cost) {
         showConfirmPopup(
             'Upgrade Academy',
-            `Upgrade youth academy to level \${clubData.academyLevel + 1} for $\${cost.toLocaleString()}?`,
+            `Upgrade youth academy to level ${clubData.academyLevel + 1} for $${cost.toLocaleString()}?`,
             () => {
                 clubData.finances -= cost;
                 clubData.academyLevel++;
@@ -55,7 +56,7 @@ export function upgradeAcademy() {
                 
                 const upgradeBtn = document.getElementById('upgrade-academy-btn');
                 if (upgradeBtn) {
-                    upgradeBtn.textContent = `Upgrade Academy (Lvl \${clubData.academyLevel})`;
+                    upgradeBtn.textContent = `Upgrade Academy (Lvl ${clubData.academyLevel})`;
                 }
                 
                 updateUI();
@@ -63,7 +64,7 @@ export function upgradeAcademy() {
             }
         );
     } else {
-        showErrorPopup('Insufficient Funds', `You need $\${cost.toLocaleString()} to upgrade the academy.`);
+        showErrorPopup('Insufficient Funds', `You need $${cost.toLocaleString()} to upgrade the academy.`);
     }
 }
 
@@ -72,14 +73,14 @@ export function upgradeAcademy() {
  */
 export function expandStadium() {
     const { clubData, managerData, fanData } = gameState;
-    const cost = clubData.stadiumLevel * 50000;
+    const cost = clubData.stadiumLevel * GAME_CONSTANTS.STADIUM_EXPANSION_MULTIPLIER;
     const expansionSize = clubData.stadiumLevel <= 3 ? 1000 : 2000;
     const newCapacity = clubData.stadiumCapacity + expansionSize;
 
     if (clubData.finances >= cost) {
         showConfirmPopup(
             'Expand Stadium',
-            `Expand stadium capacity to \${newCapacity.toLocaleString()} for $\${cost.toLocaleString()}?`,
+            `Expand stadium capacity to ${newCapacity.toLocaleString()} for $${cost.toLocaleString()}?`,
             () => {
                 clubData.finances -= cost;
                 clubData.stadiumLevel++;
@@ -104,58 +105,60 @@ export function expandStadium() {
                 }
 
                 updateUI();
-                showSuccessPopup('Stadium Expanded!', `Capacity increased to \${newCapacity.toLocaleString()}. Fan happiness and reputation increased!`);
+                showSuccessPopup('Stadium Expanded!', `Capacity increased to ${newCapacity.toLocaleString()}. Fan happiness and reputation increased!`);
             }
         );
     } else {
-        showErrorPopup('Insufficient Funds', `You need $\${cost.toLocaleString()} to expand the stadium.`);
+        showErrorPopup('Insufficient Funds', `You need $${cost.toLocaleString()} to expand the stadium.`);
     }
 }
 
 /**
  * Upgrade concessions facilities
+ * Increases the club's per-fan concession revenue on matchdays (does not pay the manager directly)
  */
 export function upgradeConcessions() {
-    const { clubData, managerData, fanData } = gameState;
-    const cost = 75000;
+    const { clubData, fanData } = gameState;
+    const cost = clubData.concessionsLevel * GAME_CONSTANTS.CONCESSIONS_UPGRADE_MULTIPLIER;
 
     if (clubData.finances >= cost) {
         showConfirmPopup(
             'Upgrade Concessions',
-            `Upgrade food and beverage facilities for $\${cost.toLocaleString()}? This will increase matchday revenue.`,
+            `Upgrade food and beverage facilities to level ${clubData.concessionsLevel + 1} for $${cost.toLocaleString()}? This will increase matchday revenue.`,
             () => {
                 clubData.finances -= cost;
+                clubData.concessionsLevel++;
                 fanData.happiness = Math.min(100, fanData.happiness + 8);
-                managerData.wealth += 25000; // Increased revenue
                 updateUI();
-                showSuccessPopup('Concessions Upgraded!', 'Fan happiness increased and matchday revenue improved!');
+                showSuccessPopup('Concessions Upgraded!', 'Fan happiness increased and matchday concession revenue improved!');
             }
         );
     } else {
-        showErrorPopup('Insufficient Funds', `You need $\${cost.toLocaleString()} to upgrade concessions.`);
+        showErrorPopup('Insufficient Funds', `You need $${cost.toLocaleString()} to upgrade concessions.`);
     }
 }
 
 /**
  * Upgrade club store
+ * Increases the club's per-fan merchandise revenue on matchdays (does not pay the manager directly)
  */
 export function upgradeStore() {
-    const { clubData, managerData, fanData } = gameState;
-    const cost = 50000;
+    const { clubData, fanData } = gameState;
+    const cost = clubData.storeLevel * GAME_CONSTANTS.STORE_UPGRADE_MULTIPLIER;
 
     if (clubData.finances >= cost) {
         showConfirmPopup(
             'Upgrade Club Store',
-            `Upgrade the club merchandise store for $\${cost.toLocaleString()}? This will increase merchandise revenue.`,
+            `Upgrade the club merchandise store to level ${clubData.storeLevel + 1} for $${cost.toLocaleString()}? This will increase merchandise revenue.`,
             () => {
                 clubData.finances -= cost;
-                managerData.wealth += 15000; // Merchandise revenue
+                clubData.storeLevel++;
                 fanData.happiness = Math.min(100, fanData.happiness + 5);
                 updateUI();
                 showSuccessPopup('Store Upgraded!', 'Merchandise revenue increased and fan happiness improved!');
             }
         );
     } else {
-        showErrorPopup('Insufficient Funds', `You need $\${cost.toLocaleString()} to upgrade the store.`);
+        showErrorPopup('Insufficient Funds', `You need $${cost.toLocaleString()} to upgrade the store.`);
     }
 }
