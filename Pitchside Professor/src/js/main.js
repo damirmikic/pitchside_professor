@@ -86,10 +86,15 @@ import {
     updateLifestyleUI
 } from './managers/lifestyle-manager.js';
 
+import {
+    setBoardExpectation
+} from './managers/board-manager.js';
+
 /**
- * Initialize the game
+ * Initialize game state and systems for the current club (gameState.selectedLeague/selectedTeam).
+ * Called on first load, and again after accepting a new job from the job board.
  */
-function startGame() {
+export function initializeGame() {
     // Add body class to indicate game has started
     document.body.classList.add('game-started');
 
@@ -117,10 +122,19 @@ function startGame() {
     initializeLeagueTable();
     generateFixtures();
     initializeFinancialSystem();
-    setupEventListeners();
+    setBoardExpectation();
+    updateSidebarDisplays();
 
     // Start in pre-season mode
     startPreSeason();
+}
+
+/**
+ * Initialize the game on first load: game state plus one-time event listener setup.
+ */
+function startGame() {
+    initializeGame();
+    setupEventListeners();
 }
 
 /**

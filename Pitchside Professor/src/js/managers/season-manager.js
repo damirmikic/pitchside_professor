@@ -10,6 +10,7 @@ import { updateUI, updateSidebarDisplays } from '../ui/ui-controller.js';
 import { calculateSeasonEndRewards, generateSponsorshipOffers, calculateSeasonTicketSales, showFinancialReport, triggerFinancialTakeover } from './finance-manager.js';
 import { initializeLeagueTable, generateFixtures } from './match-manager.js';
 import { startPreSeason } from './preseason-manager.js';
+import { setBoardExpectation } from './board-manager.js';
 
 /**
  * End the current season
@@ -68,6 +69,9 @@ export function startNewSeason() {
     // Reset league table and fixtures
     initializeLeagueTable();
     generateFixtures();
+
+    // Set the board's expectation for the new season based on squad strength rank
+    setBoardExpectation();
 
     // Calculate new season ticket sales
     calculateSeasonTicketSales();

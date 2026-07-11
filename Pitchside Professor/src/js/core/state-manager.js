@@ -12,6 +12,7 @@ class GameState {
         this.currentMatchday = 1;
         this.playerTeamData = null;
         this.isPreSeason = true;
+        this.isSacked = false;
         this.selectedLeague = null;
         this.selectedTeam = null;
         this.leagues = leagues; // Store leagues reference
@@ -23,9 +24,26 @@ class GameState {
             wealth: GAME_CONSTANTS.INITIAL_MANAGER_WEALTH,
             reputation: GAME_CONSTANTS.INITIAL_MANAGER_REPUTATION,
             jobSecurity: GAME_CONSTANTS.INITIAL_JOB_SECURITY,
-            lifestyle: []
+            lifestyle: [],
+            boardExpectation: null
         };
 
+        this._resetClubContext();
+
+        // Metadata for save file tracking
+        this.saveMetadata = {
+            version: '1.0.0',
+            lastSaved: null,
+            saveCount: 0
+        };
+    }
+
+    /**
+     * Reset everything tied to the current job (club, fans, pre-season, finances)
+     * to fresh defaults. Shared by the constructor and startNewJob() so a new
+     * job at a new club always starts from the same clean slate.
+     */
+    _resetClubContext() {
         this.clubData = {
             finances: GAME_CONSTANTS.INITIAL_CLUB_FINANCES,
             strength: GAME_CONSTANTS.INITIAL_CLUB_STRENGTH,
@@ -68,15 +86,31 @@ class GameState {
         this.financialHistory = {
             weeklyExpenses: [],
             seasonRevenue: 0,
-            lastWagePayment: 0
+            lastWagePayment: 0,
+            consecutiveNegativeMatchdays: 0
         };
+    }
 
-        // Metadata for save file tracking
-        this.saveMetadata = {
-            version: '1.0.0',
-            lastSaved: null,
-            saveCount: 0
-        };
+    /**
+     * Start a new job at a different club after being sacked. Personal career
+     * stats (wealth, reputation, lifestyle) persist; everything club-specific
+     * resets to a fresh start, and job security resets to the initial value.
+     * @param {string} leagueName - League of the new club
+     * @param {string} teamName - Name of the new club
+     */
+    startNewJob(leagueName, teamName) {
+        this.selectedLeague = leagueName;
+        this.selectedTeam = teamName;
+        this.currentMatchday = 1;
+        this.isPreSeason = true;
+        this.isSacked = false;
+        this.leagueTable = [];
+        this.fixtures = [];
+
+        this.managerData.jobSecurity = GAME_CONSTANTS.INITIAL_JOB_SECURITY;
+        this.managerData.boardExpectation = null;
+
+        this._resetClubContext();
     }
 
     loadFromLocalStorage() {
@@ -116,7 +150,8 @@ class GameState {
                 financialHistory: {
                     weeklyExpenses: [...this.financialHistory.weeklyExpenses],
                     seasonRevenue: this.financialHistory.seasonRevenue,
-                    lastWagePayment: this.financialHistory.lastWagePayment
+                    lastWagePayment: this.financialHistory.lastWagePayment,
+                    consecutiveNegativeMatchdays: this.financialHistory.consecutiveNegativeMatchdays
                 }
             }
         };
@@ -139,6 +174,9 @@ class GameState {
             this.currentSeason = data.currentSeason || 1;
             this.currentMatchday = data.currentMatchday || 1;
             this.isPreSeason = data.isPreSeason !== undefined ? data.isPreSeason : true;
+            // Always reset the transient sacking flag on load, in case a save
+            // happened mid-sacking-sequence (before a new job was accepted)
+            this.isSacked = false;
             this.selectedLeague = data.selectedLeague;
             this.selectedTeam = data.selectedTeam;
             this.playerTeamData = data.playerTeamData;
@@ -170,7 +208,8 @@ class GameState {
                 this.financialHistory = {
                     weeklyExpenses: [...(data.financialHistory.weeklyExpenses || [])],
                     seasonRevenue: data.financialHistory.seasonRevenue || 0,
-                    lastWagePayment: data.financialHistory.lastWagePayment || 0
+                    lastWagePayment: data.financialHistory.lastWagePayment || 0,
+                    consecutiveNegativeMatchdays: data.financialHistory.consecutiveNegativeMatchdays || 0
                 };
             }
 
