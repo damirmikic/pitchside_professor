@@ -29,6 +29,7 @@ class GameState {
         this.clubData = {
             finances: GAME_CONSTANTS.INITIAL_CLUB_FINANCES,
             strength: GAME_CONSTANTS.INITIAL_CLUB_STRENGTH,
+            fitness: GAME_CONSTANTS.FITNESS_MAX,
             trainingLevel: 1,
             academyLevel: 1,
             concessionsLevel: 1,
