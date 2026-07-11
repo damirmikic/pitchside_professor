@@ -166,23 +166,33 @@ sidebar nav clicks, so they went stale across a season transition.
 
 ### Phase 1 — Make matches a game, not a coin flip
 
-1. **Home advantage**: e.g. +8% goal-boost probability for the home side. Now the mirrored
+**Status: done.** Verified live in a browser plus 20k-simulation statistical
+checks against the actual game code, confirming every probability below
+matches its constant exactly.
+
+1. ✅ **Home advantage**: e.g. +8% goal-boost probability for the home side. Now the mirrored
    fixture list matters, and "next match is away at the leaders" becomes a real sentence.
-2. **Visible odds panel**: before choosing a tactic, show a simple strength comparison
+2. ✅ **Visible odds panel**: before choosing a tactic, show a simple strength comparison
    (e.g. "Your strength 62 vs. Ironclad 85 — Underdog"). Dice stay, but the player
    understands what they're modifying.
-3. **Tactics with risk profiles** instead of flat ±1:
+3. ✅ **Tactics with risk profiles** instead of flat ±1:
    - *All-out attack*: +35% chance of an extra goal, +20% chance of conceding an extra goal.
-   - *Park the bus*: 40% chance to cancel one opponent goal, −25% chance of scoring at all.
-   - *Counter-attack*: bonus only when opponent is stronger (underdog tool).
+   - *Park the bus*: 40% chance to cancel one opponent goal, 25% chance of −1 own goal
+     (implemented as a misfire penalty rather than a full scoring blackout, to keep it
+     from being a guaranteed 0-0 tactic).
+   - *Counter-attack*: bonus only when opponent is stronger (underdog tool) — new tactic
+     option added to the dropdown.
    - *Balanced*: no modifiers.
-   Show the effect in the match result ("Your defensive setup denied a goal!") so choices feel causal.
-4. **Team fitness/morale as a season-long resource**: carry pre-season fitness into the
-   season; each match drains it slightly, training restores it, low fitness = strength
-   penalty. Creates a rest/rotate rhythm and gives training camps a purpose.
-5. **Match events feed** (text ticker between dice roll and result): 3–5 flavour events
-   ("Red card!", "Penalty saved!") that occasionally modify the roll. Cheap to build,
-   large perceived depth.
+   The match result popup and a live ticker narrate the effect ("Your defensive setup
+   denied a goal!") so choices feel causal.
+4. ✅ **Team fitness as a season-long resource**: `clubData.fitness` carries over from
+   pre-season, drains ~4 points/matchday, and scales effective match strength by up to
+   ~20%. Training level reduces the drain rate (rather than an active "restore" action)
+   — a lighter-weight version of "training restores it" that still gives the training
+   upgrade a second purpose. Displayed in the Club tab.
+5. ✅ **Match events feed** (ticker + result-popup narrative): 7 flavour events
+   ("Red card!", "Penalty saved!", wondergoals, etc.), 25% chance per player match of
+   nudging the scoreline by one goal.
 
 ### Phase 2 — Stakes and consequences
 
