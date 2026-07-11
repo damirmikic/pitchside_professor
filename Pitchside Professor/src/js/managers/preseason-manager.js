@@ -4,6 +4,7 @@
  */
 
 import { gameState } from '../core/state-manager.js';
+import { GAME_CONSTANTS } from '../data/constants.js';
 import { showAnimatedPopup, showSuccessPopup, showWarningPopup } from '../ui/notification-system.js';
 import { showNotification } from '../ui/notification-system.js';
 import { updateUI, openTab } from '../ui/ui-controller.js';
@@ -310,10 +311,13 @@ export function finishPreSeason() {
         preseasonTab.style.display = 'none';
     }
 
-    // Apply pre-season bonuses to team strength
-    const fitnessBonus = Math.floor((preSeasonData.teamFitness - 75) / 5);
+    // Team chemistry built in pre-season is a lasting bonus to team strength
     const chemistryBonus = Math.floor((preSeasonData.teamChemistry - 60) / 4);
-    clubData.strength += fitnessBonus + chemistryBonus;
+    clubData.strength += chemistryBonus;
+
+    // Fitness carries into the season as a depleting resource rather than a
+    // one-time bonus: it drains with each matchday and is protected by training
+    clubData.fitness = Math.max(GAME_CONSTANTS.FITNESS_MIN, Math.min(GAME_CONSTANTS.FITNESS_MAX, preSeasonData.teamFitness));
 
     // Switch to manager tab
     openTab(null, 'manager');
@@ -321,7 +325,7 @@ export function finishPreSeason() {
     updateUI();
 
     showAnimatedPopup('Season Begins!',
-        `Pre-season complete! Your team gained ${fitnessBonus + chemistryBonus} strength points from preparation.\n\nGood luck in the ${selectedLeague}!`,
+        `Pre-season complete! Your team gained ${chemistryBonus} strength points from team chemistry, and starts the season at ${clubData.fitness}% fitness.\n\nGood luck in the ${selectedLeague}!`,
         'success');
 }
 

@@ -51,12 +51,27 @@ export const GAME_CONSTANTS = {
     // Dice Probabilities (for weighted rolls 0-5)
     DICE_WEIGHTS: [0.35, 0.25, 0.20, 0.10, 0.07, 0.03],
 
-    // Tactics
-    TACTIC_ATTACKING_BONUS: 1,
-    TACTIC_ATTACKING_PENALTY: -1,
-    TACTIC_DEFENSIVE_BONUS: -1,
-    TACTIC_DEFENSIVE_PENALTY: 1,
-    TACTIC_BALANCED_BONUS: 0,
+    // Home advantage: extra chance of a bonus goal for the home side
+    HOME_ADVANTAGE_CHANCE: 0.08,
+
+    // Tactics: risk profiles instead of flat modifiers
+    TACTIC_ATTACK_BONUS_CHANCE: 0.35,   // chance of +1 own goal
+    TACTIC_ATTACK_CONCEDE_CHANCE: 0.20, // chance of +1 opponent goal (risk)
+    TACTIC_DEFENSIVE_BLOCK_CHANCE: 0.40,   // chance of cancelling one opponent goal
+    TACTIC_DEFENSIVE_MISFIRE_CHANCE: 0.25, // chance of -1 own goal (risk)
+    TACTIC_COUNTER_BONUS_CHANCE: 0.30,  // chance of +1 own goal, only when the underdog
+
+    // Squad fitness: a season-long resource that decays with matches and is
+    // protected by training level; low fitness slightly reduces effective strength
+    FITNESS_MIN: 30,
+    FITNESS_MAX: 100,
+    FITNESS_DRAIN_PER_MATCHDAY_BASE: 4,
+    FITNESS_DRAIN_REDUCTION_PER_TRAINING_LEVEL: 0.5,
+    FITNESS_STRENGTH_MULTIPLIER_BASE: 0.8,
+    FITNESS_STRENGTH_MULTIPLIER_RANGE: 0.2,
+
+    // Match events: rare flavour events that can nudge a result
+    MATCH_EVENT_CHANCE: 0.25,
 
     // Lifestyle Costs
     LIFESTYLE_ITEMS: {

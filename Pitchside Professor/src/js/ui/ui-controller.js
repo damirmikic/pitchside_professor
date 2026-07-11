@@ -77,12 +77,16 @@ function updateManagerStats() {
 function updateClubStats() {
     const financesElement = getCachedElement('club-finances');
     const strengthElement = getCachedElement('club-strength');
+    const fitnessElement = getCachedElement('squad-fitness-display');
 
     if (financesElement) {
         financesElement.textContent = formatCurrency(gameState.clubData.finances);
     }
     if (strengthElement) {
         strengthElement.textContent = gameState.clubData.strength;
+    }
+    if (fitnessElement) {
+        fitnessElement.textContent = `${gameState.clubData.fitness}%`;
     }
 }
 

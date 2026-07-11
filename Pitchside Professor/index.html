@@ -80,6 +80,7 @@
                     </div>
                 </div>
                 <h3 id="result-display">Select a tactic and play your first matchday!</h3>
+                <p id="match-event-display" class="match-event-ticker" style="display: none;"></p>
                 <figure>
                     <table id="league-table" role="grid">
                         <thead>
@@ -417,6 +418,9 @@
                         <article><strong>Team Strength</strong>
                             <p id="club-strength">0</p>
                         </article>
+                        <article><strong>Squad Fitness</strong>
+                            <p id="squad-fitness-display">100%</p>
+                        </article>
                         <article><strong>Sponsorship</strong>
                             <p id="sponsorship-info">No active deals</p>
                         </article>
@@ -529,11 +533,13 @@
             <div class="control-card">
                 <h3 id="next-matchday-header">Next Matchday</h3>
                 <p id="next-match-display">Team A vs Team B</p>
+                <p id="match-odds-display" class="match-odds"></p>
                 <label for="tactic-select">Your Tactic</label>
                 <select id="tactic-select">
                     <option value="balanced" selected>Balanced</option>
-                    <option value="attacking">Attacking</option>
-                    <option value="defensive">Defensive</option>
+                    <option value="attacking">All-Out Attack</option>
+                    <option value="defensive">Park the Bus</option>
+                    <option value="counter">Counter-Attack</option>
                 </select>
                 <button id="main-action-btn">Play Matchday</button>
             </div>

@@ -4,10 +4,41 @@
  */
 
 import { gameState } from '../core/state-manager.js';
+import { GAME_CONSTANTS } from '../data/constants.js';
 import { showAnimatedPopup, showWarningPopup } from '../ui/notification-system.js';
 import { calculateMatchdayRevenue, processWeeklyWages } from './finance-manager.js';
 import { updateUI, updateSidebarDisplays } from '../ui/ui-controller.js';
 import { rollWeightedDice } from '../utils/dice.js';
+
+/**
+ * Rare match events that can nudge a result, shown to the player for flavour
+ */
+const MATCH_EVENTS = [
+    { id: 'wondergoal', label: 'A stunning strike finds the net!', target: 'own', goalDelta: 1 },
+    { id: 'injury_time_winner', label: 'A dramatic goal in injury time!', target: 'own', goalDelta: 1 },
+    { id: 'opponent_red_card', label: 'Red card! The opposition is down to ten men.', target: 'opponent', goalDelta: -1 },
+    { id: 'penalty_saved', label: 'Penalty saved! Your keeper is the hero.', target: 'opponent', goalDelta: -1 },
+    { id: 'opponent_wondergoal', label: 'The opposition score a screamer of their own!', target: 'opponent', goalDelta: 1 },
+    { id: 'own_red_card', label: 'Your player sees red! Down to ten men.', target: 'own', goalDelta: -1 },
+    { id: 'penalty_missed', label: 'Penalty missed! A golden chance goes begging.', target: 'own', goalDelta: -1 }
+];
+
+/**
+ * Roll for a random match event
+ * @returns {Object} A random entry from MATCH_EVENTS
+ */
+function rollMatchEvent() {
+    return MATCH_EVENTS[Math.floor(Math.random() * MATCH_EVENTS.length)];
+}
+
+/**
+ * Clamp a dice/goal value to the valid 0-5 range
+ * @param {number} value
+ * @returns {number}
+ */
+function clampDice(value) {
+    return Math.max(0, Math.min(5, value));
+}
 
 /**
  * Initialize the league table with all teams
@@ -35,14 +66,29 @@ export function initializeLeagueTable() {
 
 /**
  * Sync the player's league-table strength entry with clubData.strength
- * so training/upgrades and pre-season bonuses affect match outcomes.
+ * so training/upgrades affect match outcomes. Squad fitness is applied as a
+ * multiplier on top, so a tired squad is measurably weaker than a fresh one.
  */
-function syncPlayerStrength() {
+export function syncPlayerStrength() {
     const { leagueTable, selectedTeam, clubData } = gameState;
     const playerTeam = leagueTable.find(team => team.name === selectedTeam);
     if (playerTeam) {
-        playerTeam.strength = clubData.strength;
+        const fitnessMultiplier = GAME_CONSTANTS.FITNESS_STRENGTH_MULTIPLIER_BASE +
+            GAME_CONSTANTS.FITNESS_STRENGTH_MULTIPLIER_RANGE * (clubData.fitness / 100);
+        playerTeam.strength = Math.round(clubData.strength * fitnessMultiplier);
     }
+}
+
+/**
+ * Drain squad fitness after a matchday; higher training levels reduce the drain.
+ */
+function drainFitness() {
+    const { clubData } = gameState;
+    const drain = Math.max(1, Math.round(
+        GAME_CONSTANTS.FITNESS_DRAIN_PER_MATCHDAY_BASE -
+        clubData.trainingLevel * GAME_CONSTANTS.FITNESS_DRAIN_REDUCTION_PER_TRAINING_LEVEL
+    ));
+    clubData.fitness = Math.max(GAME_CONSTANTS.FITNESS_MIN, clubData.fitness - drain);
 }
 
 /**
@@ -174,7 +220,7 @@ export function updateFixturesDisplay() {
     const nextFixture = getNextPlayerFixture();
     const nextMatchDisplay = document.getElementById('next-match-display');
     const nextMatchdayHeader = document.getElementById('next-matchday-header');
-    
+
     if (nextFixture && nextMatchDisplay && nextMatchdayHeader) {
         nextMatchDisplay.textContent = `${nextFixture.home} vs ${nextFixture.away}`;
         nextMatchdayHeader.textContent = `Next Matchday ${currentMatchday}`;
@@ -182,6 +228,50 @@ export function updateFixturesDisplay() {
         nextMatchDisplay.textContent = 'Season Complete';
         nextMatchdayHeader.textContent = 'Season Complete';
     }
+
+    updateMatchOddsDisplay(nextFixture);
+}
+
+/**
+ * Show a strength comparison for the player's next fixture, so tactics are
+ * chosen with visible information rather than blind dice rolls.
+ * @param {Object|null} nextFixture
+ */
+function updateMatchOddsDisplay(nextFixture) {
+    const oddsDisplay = document.getElementById('match-odds-display');
+    if (!oddsDisplay) return;
+
+    if (!nextFixture) {
+        oddsDisplay.textContent = '';
+        return;
+    }
+
+    const { leagueTable, selectedTeam } = gameState;
+    syncPlayerStrength();
+
+    const playerTeam = leagueTable.find(team => team.name === selectedTeam);
+    const isHome = nextFixture.home === selectedTeam;
+    const opponentName = isHome ? nextFixture.away : nextFixture.home;
+    const opponentTeam = leagueTable.find(team => team.name === opponentName);
+
+    if (!playerTeam || !opponentTeam) {
+        oddsDisplay.textContent = '';
+        return;
+    }
+
+    const diff = playerTeam.strength - opponentTeam.strength;
+    let verdict;
+    if (diff >= 12) {
+        verdict = 'Favorite 🔺';
+    } else if (diff <= -12) {
+        verdict = 'Underdog 🔻';
+    } else {
+        verdict = 'Even Match ⚖️';
+    }
+    const venue = isHome ? '(Home)' : '(Away)';
+
+    oddsDisplay.textContent =
+        `Your Strength: ${playerTeam.strength} vs ${opponentName}: ${opponentTeam.strength} ${venue} — ${verdict}`;
 }
 
 /**
@@ -225,6 +315,7 @@ export function playMatchday() {
 
         // Show dice results
         updateDiceDisplay(result.homeGoals, result.awayGoals);
+        updateMatchEventTicker(result);
 
         // Simulate other matches in the same matchday
         const currentMatchdayIndex = gameState.fixtures.findIndex(matchdayFixtures =>
@@ -241,6 +332,9 @@ export function playMatchday() {
 
         // Process weekly wages for this matchday
         processWeeklyWages();
+
+        // Squad fitness drains with every matchday played
+        drainFitness();
 
         // Update displays
         updateLeagueTable();
@@ -322,6 +416,49 @@ function updateDiceDisplay(homeGoals, awayGoals) {
 }
 
 /**
+ * Show a brief match-event/tactic-effect ticker for the player's match
+ * @param {Object} result Result object from simulateMatch
+ */
+function updateMatchEventTicker(result) {
+    const ticker = document.getElementById('match-event-display');
+    if (!ticker) return;
+
+    if (!result.isPlayerMatch) {
+        ticker.style.display = 'none';
+        return;
+    }
+
+    const eventLabel = result.matchEvent ? result.matchEvent.label : null;
+    const tacticLabel = describeTacticEffect(result.tacticEffect);
+    const text = [eventLabel, tacticLabel].filter(Boolean).join(' ');
+
+    if (text) {
+        ticker.textContent = text;
+        ticker.style.display = 'block';
+    } else {
+        ticker.style.display = 'none';
+    }
+}
+
+/**
+ * Human-readable description of a tactic's risk-profile outcome
+ * @param {string|null} tacticEffect
+ * @returns {string|null}
+ */
+function describeTacticEffect(tacticEffect) {
+    switch (tacticEffect) {
+        case 'attack_bonus': return 'Your all-out attack broke through for an extra goal!';
+        case 'attack_concede': return 'Your all-out attack left gaps at the back — they punished it.';
+        case 'attack_bonus_and_concede': return 'An end-to-end thriller from your all-out attack!';
+        case 'defensive_block': return 'Your defensive setup denied them a goal!';
+        case 'defensive_misfire': return 'Parking the bus blunted your own attack.';
+        case 'defensive_block_and_misfire': return 'A cagey, defensive affair on both sides.';
+        case 'counter_bonus': return 'A perfectly executed counter-attack caught the favorites out!';
+        default: return null;
+    }
+}
+
+/**
  * Simulate a match between two teams
  * @param {Object} fixture Match fixture
  * @param {string|null} playerTactic Player's selected tactic (if applicable)
@@ -331,6 +468,8 @@ export function simulateMatch(fixture, playerTactic = null) {
     const { leagueTable, selectedTeam } = gameState;
     const homeTeam = leagueTable.find(team => team.name === fixture.home);
     const awayTeam = leagueTable.find(team => team.name === fixture.away);
+    const isPlayerMatch = fixture.home === selectedTeam || fixture.away === selectedTeam;
+    const isHome = fixture.home === selectedTeam;
 
     // Roll dice for each team (0-5)
     let homeDice = rollWeightedDice();
@@ -340,29 +479,58 @@ export function simulateMatch(fixture, playerTactic = null) {
     const homeStrengthBonus = Math.floor(homeTeam.strength / 20);
     const awayStrengthBonus = Math.floor(awayTeam.strength / 20);
 
-    homeDice = Math.min(5, homeDice + (Math.random() < homeStrengthBonus / 10 ? 1 : 0));
-    awayDice = Math.min(5, awayDice + (Math.random() < awayStrengthBonus / 10 ? 1 : 0));
+    homeDice = clampDice(homeDice + (Math.random() < homeStrengthBonus / 10 ? 1 : 0));
+    awayDice = clampDice(awayDice + (Math.random() < awayStrengthBonus / 10 ? 1 : 0));
 
-    // Apply player tactic bonus
-    if (playerTactic && (fixture.home === selectedTeam || fixture.away === selectedTeam)) {
-        const isHome = fixture.home === selectedTeam;
+    // Home advantage: a small extra chance of a bonus goal for the home side
+    if (Math.random() < GAME_CONSTANTS.HOME_ADVANTAGE_CHANCE) {
+        homeDice = clampDice(homeDice + 1);
+    }
+
+    // Apply player tactic risk profile
+    let tacticEffect = null;
+    if (playerTactic && isPlayerMatch) {
+        const ownStrength = isHome ? homeTeam.strength : awayTeam.strength;
+        const opponentStrength = isHome ? awayTeam.strength : homeTeam.strength;
 
         if (playerTactic === 'attacking') {
-            // Attacking: +1 to own goals
-            if (isHome) {
-                homeDice = Math.min(5, homeDice + 1);
-            } else {
-                awayDice = Math.min(5, awayDice + 1);
+            if (Math.random() < GAME_CONSTANTS.TACTIC_ATTACK_BONUS_CHANCE) {
+                if (isHome) homeDice = clampDice(homeDice + 1); else awayDice = clampDice(awayDice + 1);
+                tacticEffect = 'attack_bonus';
+            }
+            if (Math.random() < GAME_CONSTANTS.TACTIC_ATTACK_CONCEDE_CHANCE) {
+                if (isHome) awayDice = clampDice(awayDice + 1); else homeDice = clampDice(homeDice + 1);
+                tacticEffect = tacticEffect ? 'attack_bonus_and_concede' : 'attack_concede';
             }
         } else if (playerTactic === 'defensive') {
-            // Defensive: -1 to opponent's goals (minimum 0)
-            if (isHome) {
-                awayDice = Math.max(0, awayDice - 1);
-            } else {
-                homeDice = Math.max(0, homeDice - 1);
+            if (Math.random() < GAME_CONSTANTS.TACTIC_DEFENSIVE_BLOCK_CHANCE) {
+                if (isHome) awayDice = clampDice(awayDice - 1); else homeDice = clampDice(homeDice - 1);
+                tacticEffect = 'defensive_block';
+            }
+            if (Math.random() < GAME_CONSTANTS.TACTIC_DEFENSIVE_MISFIRE_CHANCE) {
+                if (isHome) homeDice = clampDice(homeDice - 1); else awayDice = clampDice(awayDice - 1);
+                tacticEffect = tacticEffect ? 'defensive_block_and_misfire' : 'defensive_misfire';
+            }
+        } else if (playerTactic === 'counter') {
+            // Counter-attack only pays off when the player is the underdog
+            if (ownStrength < opponentStrength && Math.random() < GAME_CONSTANTS.TACTIC_COUNTER_BONUS_CHANCE) {
+                if (isHome) homeDice = clampDice(homeDice + 1); else awayDice = clampDice(awayDice + 1);
+                tacticEffect = 'counter_bonus';
             }
         }
         // Balanced: no modification
+    }
+
+    // Rare match event, only rolled (and shown) for the player's own match
+    let matchEvent = null;
+    if (isPlayerMatch && Math.random() < GAME_CONSTANTS.MATCH_EVENT_CHANCE) {
+        matchEvent = rollMatchEvent();
+        const affectsHomeDice = (matchEvent.target === 'own' && isHome) || (matchEvent.target === 'opponent' && !isHome);
+        if (affectsHomeDice) {
+            homeDice = clampDice(homeDice + matchEvent.goalDelta);
+        } else {
+            awayDice = clampDice(awayDice + matchEvent.goalDelta);
+        }
     }
 
     // Goals are the dice values
@@ -400,22 +568,10 @@ export function simulateMatch(fixture, playerTactic = null) {
         fixture: fixture,
         homeGoals: homeGoals,
         awayGoals: awayGoals,
-        isPlayerMatch: fixture.home === selectedTeam || fixture.away === selectedTeam
+        isPlayerMatch: isPlayerMatch,
+        tacticEffect: tacticEffect,
+        matchEvent: matchEvent
     };
-}
-
-/**
- * Get tactic bonus value
- * @param {string} tactic Tactic name
- * @returns {number} Bonus value
- */
-export function getTacticBonus(tactic) {
-    switch (tactic) {
-        case 'attacking': return 1;
-        case 'defensive': return 0;
-        case 'balanced':
-        default: return 0;
-    }
 }
 
 /**
@@ -424,7 +580,7 @@ export function getTacticBonus(tactic) {
  * @param {Object} matchdayFinancials Financial data from matchday
  */
 export function showMatchResult(result, matchdayFinancials) {
-    const { fixture, homeGoals, awayGoals, isPlayerMatch } = result;
+    const { fixture, homeGoals, awayGoals, isPlayerMatch, tacticEffect, matchEvent } = result;
     const { selectedTeam, managerData, fanData } = gameState;
 
     if (isPlayerMatch) {
@@ -433,23 +589,24 @@ export function showMatchResult(result, matchdayFinancials) {
         const isDraw = homeGoals === awayGoals;
 
         let title, message, type;
+        const scoreline = `${fixture.home} ${homeGoals} - ${awayGoals} ${fixture.away}`;
+        const narrative = [matchEvent ? matchEvent.label : null, describeTacticEffect(tacticEffect)]
+            .filter(Boolean).join(' ');
+        message = narrative ? `${scoreline}<br><br>${narrative}` : scoreline;
 
         if (isWin) {
             title = 'Victory!';
-            message = `${fixture.home} ${homeGoals} - ${awayGoals} ${fixture.away}`;
             type = 'success';
             managerData.reputation += 2;
             managerData.jobSecurity = Math.min(100, managerData.jobSecurity + 5);
             fanData.happiness = Math.min(100, fanData.happiness + 10);
         } else if (isDraw) {
             title = 'Draw';
-            message = `${fixture.home} ${homeGoals} - ${awayGoals} ${fixture.away}`;
             type = 'warning';
             managerData.reputation += 1;
             fanData.happiness = Math.max(0, fanData.happiness - 2);
         } else {
             title = 'Defeat';
-            message = `${fixture.home} ${homeGoals} - ${awayGoals} ${fixture.away}`;
             type = 'error';
             managerData.reputation = Math.max(0, managerData.reputation - 1);
             managerData.jobSecurity = Math.max(0, managerData.jobSecurity - 3);

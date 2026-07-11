@@ -746,6 +746,20 @@ body:not(.game-started) #page-selection {
     margin: var(--spacing-md) 0;
 }
 
+.match-event-ticker {
+    text-align: center;
+    font-style: italic;
+    color: var(--accent-gold);
+    margin: 0 0 var(--spacing-md) 0;
+}
+
+.match-odds {
+    text-align: center;
+    font-size: 0.9rem;
+    opacity: 0.85;
+    margin: 0.25rem 0 1rem 0;
+}
+
 /* ===== MODAL STYLES ===== */
 .modal {
     position: fixed;
