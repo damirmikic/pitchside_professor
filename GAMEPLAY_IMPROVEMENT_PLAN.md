@@ -143,17 +143,26 @@ consequences**:
 
 ### Phase 0 — Repair (fix what exists) — *highest priority, ~1 short PR each*
 
-1. **Fix all 90 `\${` escapes** (bug 1.1). This alone makes the game presentable.
-2. **Wire strength into the match engine** (bug 1.2): keep one 0–100 scale,
+**Status: items 1-8 and most of 9 are done** (see commit history on this branch).
+Verified end-to-end in a real browser: pre-season → matchday → full season
+transition into season 2's pre-season, wages deducting, upgrades affecting
+finances/strength, mirrored fixtures, no literal `${...}` anywhere in the UI.
+Still open from item 9: deleting `index.html.backup` and the duplicate
+root-level images. Also fixed one bug found during verification that wasn't
+in the original list: the sidebar season/matchday counters only refreshed on
+sidebar nav clicks, so they went stale across a season transition.
+
+1. ✅ **Fix all 90 `\${` escapes** (bug 1.1). This alone makes the game presentable.
+2. ✅ **Wire strength into the match engine** (bug 1.2): keep one 0–100 scale,
    sync the player's league-table row from `clubData.strength` before each matchday.
-3. **Game-time wages**: deduct `weeklyWages` every matchday; remove `Date.now()` logic.
-4. **Takeover**: roll once per season end (5%), or make it a rare mid-season event at ~0.3%/matchday.
-5. **Concessions/store levels** that raise club matchday revenue instead of paying the manager.
-6. **Fix `showNotification` call sites** (or accept `(title, message, type)` and render a title).
-7. **Mirror fixtures**: generate `n-1` rounds, then append the reversed-venue mirror.
-8. **Restore pre-season every season** in `startNewSeason()` (reset `preSeasonData`, re-enter pre-season flow).
-9. Cleanup: dedupe dice utils, import `leagues` in `preseason-manager`, use
-   `GAME_CONSTANTS` for all costs, delete `index.html.backup` + duplicate root images.
+3. ✅ **Game-time wages**: deduct `weeklyWages` every matchday; remove `Date.now()` logic.
+4. ✅ **Takeover**: roll once per season end (5%), or make it a rare mid-season event at ~0.3%/matchday.
+5. ✅ **Concessions/store levels** that raise club matchday revenue instead of paying the manager.
+6. ✅ **Fix `showNotification` call sites** (or accept `(title, message, type)` and render a title).
+7. ✅ **Mirror fixtures**: generate `n-1` rounds, then append the reversed-venue mirror.
+8. ✅ **Restore pre-season every season** in `startNewSeason()` (reset `preSeasonData`, re-enter pre-season flow).
+9. ⬜ Cleanup: dedupe dice utils ✅, import `leagues` in `preseason-manager` ✅, use
+   `GAME_CONSTANTS` for all costs ✅, delete `index.html.backup` + duplicate root images (not done).
 
 ### Phase 1 — Make matches a game, not a coin flip
 
