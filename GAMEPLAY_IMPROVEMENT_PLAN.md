@@ -196,23 +196,36 @@ matches its constant exactly.
 
 ### Phase 2 — Stakes and consequences
 
-1. **Board expectations & sacking (game over)**: at season start the board sets a target
-   based on squad strength rank (e.g. "finish top 4"). Job security drifts toward
-   performance vs. expectation; at 0 → sacked → game-over screen (uses the existing
-   `lose cover.png` asset) with career summary and "Start new career".
-2. **Bankruptcy pressure**: if finances go negative, the board issues a warning; two
-   consecutive negative months = forced asset sale (strength penalty) and job security hit.
-3. **Manager career mode**: reputation gates job offers. After a sacking (or a trophy),
-   receive offers from other clubs/leagues — stronger clubs demand higher reputation.
-   This turns the 8 themed leagues × 64 teams into a career ladder instead of a menu.
-4. **Promotion/relegation OR continental qualification**: with 8 self-contained leagues,
-   the cheapest high-value option is qualification: finish top 2 → enter next season's
-   **Champions Cup** (knockout bracket seeded with top teams from all 8 leagues —
-   the `champions cup throphy.png` asset already exists for this). Extra fixtures,
-   extra revenue, extra reputation.
-5. **Recurring lifestyle costs**: lifestyle items charge their monthly cost every 4
-   matchdays and grant an ongoing small job-security/reputation buffer — making
-   personal wealth a real budget instead of a one-way score.
+**Status: items 1, 2, 3, and 5 are done.** Item 4 (Champions Cup) is deferred as its
+own follow-up — a genuinely separate feature (tournament bracket state, cross-league
+seeding, a new season-end flow) rather than something to bolt onto this batch.
+Verified live: board expectations computed/displayed for weak and strong teams,
+sacking → job board → accept-offer flow with correct career-vs-club state reset,
+reputation-gated offers, bankruptcy warning-then-forced-sale sequence, and lifestyle
+upkeep billing, all with exact expected numbers.
+
+1. ✅ **Board expectations & sacking**: at season/job start the board sets a target
+   based on squad strength rank (with one position of slack). Job security drifts every
+   matchday toward or away from that target, independent of match results; at 0 → sacked
+   → full-screen sequence (using the `lose cover.png` asset) → job board. Rather than a
+   true "game over", sacking feeds directly into item 3 below so the career continues.
+2. ✅ **Bankruptcy pressure**: a matchday with negative finances draws a board warning;
+   two consecutive negative matchdays trigger a forced asset sale (strength penalty +
+   cash bailout) and a job security hit.
+3. ✅ **Manager career mode**: reputation gates job offers on a new Job Board shown after
+   a sacking — modest/mid/strong clubs across all 8 leagues, stronger clubs requiring
+   higher reputation. The single weakest offer is always free of a requirement so a
+   career can never fully dead-end. Accepting resets club-specific state (finances,
+   strength, stadium, upgrades, fitness) while wealth/reputation/lifestyle persist.
+4. ⬜ **Promotion/relegation OR continental qualification** (deferred): with 8
+   self-contained leagues, the cheapest high-value option is qualification: finish top 2
+   → enter next season's **Champions Cup** (knockout bracket seeded with top teams from
+   all 8 leagues — the `champions cup throphy.png` asset already exists for this, and
+   index.html already has unwired `#champions-cup-view`/`#champions-cup-groups`
+   scaffolding from earlier planning). Extra fixtures, extra revenue, extra reputation.
+5. ✅ **Recurring lifestyle costs**: lifestyle items now bill their monthly cost from
+   personal wealth every 4 matchdays, instead of a one-time purchase with a cosmetic
+   "$X/month" label that was never charged.
 
 ### Phase 3 — Depth and retention
 
