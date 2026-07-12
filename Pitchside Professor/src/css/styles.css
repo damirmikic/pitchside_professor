@@ -1393,6 +1393,50 @@ body.job-board-active #sidebar {
     display: none !important;
 }
 
+/* ===== CAREER HISTORY / TROPHY CABINET ===== */
+.trophy-cabinet {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.trophy-stat {
+    flex: 1;
+    text-align: center;
+    background: var(--background-medium);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-md);
+}
+
+.trophy-stat strong {
+    display: block;
+    font-size: 1.8rem;
+    color: var(--accent-gold);
+}
+
+.trophy-stat span {
+    color: var(--text-light);
+    font-size: 0.85rem;
+}
+
+.achievements-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.achievement-badge {
+    background: linear-gradient(135deg, var(--accent-gold), #b8860b);
+    color: var(--background-dark);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    cursor: default;
+}
+
 .reading-dots span:nth-child(1) {
     animation-delay: 0s;
 }

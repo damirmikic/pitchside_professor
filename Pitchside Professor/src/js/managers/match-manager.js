@@ -9,6 +9,7 @@ import { showAnimatedPopup, showWarningPopup } from '../ui/notification-system.j
 import { calculateMatchdayRevenue, processWeeklyWages, checkBankruptcy } from './finance-manager.js';
 import { chargeLifestyleUpkeep } from './lifestyle-manager.js';
 import { applyBoardPressure, checkForSacking } from './board-manager.js';
+import { maybeShowRandomEvent } from './random-events-manager.js';
 import { updateUI, updateSidebarDisplays } from '../ui/ui-controller.js';
 import { rollWeightedDice } from '../utils/dice.js';
 
@@ -304,6 +305,16 @@ export function playMatchday() {
         return;
     }
 
+    // A random event may appear before the match; the rest of the matchday
+    // only proceeds once it's resolved (or immediately, most matchdays)
+    maybeShowRandomEvent(() => playMatchdayAfterEvent(nextFixture));
+}
+
+/**
+ * The actual matchday flow, run once any pending random event is resolved
+ * @param {Object} nextFixture
+ */
+function playMatchdayAfterEvent(nextFixture) {
     const tacticSelect = document.getElementById('tactic-select');
     const tactic = tacticSelect ? tacticSelect.value : 'balanced';
 
@@ -700,8 +711,89 @@ function showManagerReadingNewspaper(callback) {
  * Show newspaper modal with match result
  * @param {Object} matchResult Match result data
  */
+/**
+ * The player's current league position (1-indexed)
+ * @returns {number}
+ */
+function getPlayerPosition() {
+    const { leagueTable, selectedTeam } = gameState;
+    return leagueTable.findIndex(team => team.name === selectedTeam) + 1;
+}
+
+/**
+ * The player's last N results, oldest to newest, as 'W'/'D'/'L'
+ * @param {number} n
+ * @returns {Array<string>}
+ */
+function getRecentForm(n) {
+    const { fixtures, selectedTeam } = gameState;
+    const playerFixtures = [];
+
+    fixtures.forEach(matchdayFixtures => {
+        matchdayFixtures.forEach(fixture => {
+            if (fixture.played && (fixture.home === selectedTeam || fixture.away === selectedTeam)) {
+                playerFixtures.push(fixture);
+            }
+        });
+    });
+
+    return playerFixtures.slice(-n).map(fixture => {
+        const isHome = fixture.home === selectedTeam;
+        const ownGoals = isHome ? fixture.homeGoals : fixture.awayGoals;
+        const opponentGoals = isHome ? fixture.awayGoals : fixture.homeGoals;
+        if (ownGoals > opponentGoals) return 'W';
+        if (ownGoals < opponentGoals) return 'L';
+        return 'D';
+    });
+}
+
+const NEWS_HEADLINES = {
+    landmarkWin: [
+        { headline: '{team} Run Riot in Statement Win!', article: "A ruthless display from {team} sends a message to the rest of the league. The board is delighted, and the fans are already dreaming big." },
+        { headline: 'No Mercy as {team} Demolish Their Rivals', article: 'A performance for the ages from {team}, who never let up. Pundits are calling it one of the results of the season.' }
+    ],
+    titleRaceWin: [
+        { headline: '{team} Stay in the Hunt with Crucial Win', article: "Every point matters at the top of the table, and {team} delivered when it counted. The title race is well and truly alive." },
+        { headline: 'Title Push Continues for {team}', article: '{team} keep the pressure on the teams above them with another big result. The board is quietly optimistic about where this season could end.' }
+    ],
+    genericWin: [
+        { headline: '{team} Triumph in Spectacular Fashion!', article: "Manager's tactical brilliance shines as {team} secure a convincing victory. The fans are ecstatic with this performance, and the board couldn't be happier with the results." },
+        { headline: '{team} Take Three Well-Earned Points', article: 'A composed performance sees {team} come out on top. Not the flashiest win of the season, but a valuable one all the same.' }
+    ],
+    genericDraw: [
+        { headline: '{team} Hold Their Ground', article: "A hard-fought draw for {team} as they showed resilience and determination. While not the result fans hoped for, the team's fighting spirit was evident throughout the match." },
+        { headline: 'Points Shared as {team} Battle to a Stalemate', article: 'Neither side could find a breakthrough in an evenly-matched contest. {team} will look to build on the performance next time out.' }
+    ],
+    boardPressureDraw: [
+        { headline: 'Another Draw Fails to Ease Pressure on {team} Boss', article: 'With the board already watching closely, a third successive draw does little to calm nerves around the club. Patience is wearing thin.' }
+    ],
+    landmarkLoss: [
+        { headline: '{team} Torn Apart in Humbling Defeat', article: "A chastening afternoon for {team}, who were second best from start to finish. The manager will have some difficult questions to answer at the next press conference." }
+    ],
+    losingStreak: [
+        { headline: 'Crisis Talks Loom as {team} Slump Continues', article: 'Three defeats in a row have plunged {team} into a genuine crisis. The dressing room is said to be uneasy, and the board is watching closely.' },
+        { headline: '{team} in Freefall After Latest Loss', article: 'The alarm bells are ringing after yet another defeat. Something needs to change, and fast, before the situation spirals further.' }
+    ],
+    boardPressureLoss: [
+        { headline: "Manager's Job on the Line After Another Defeat", article: 'With job security already low, this latest setback for {team} will not have gone unnoticed in the boardroom. The pressure is mounting by the week.' }
+    ],
+    relegationZoneLoss: [
+        { headline: '{team} Sink Further Into Trouble', article: 'Another defeat leaves {team} staring at the wrong end of the table. There is real concern among supporters about where this season is heading.' }
+    ],
+    genericLoss: [
+        { headline: '{team} Suffer Disappointing Defeat', article: "Questions are being raised about the manager's tactics after {team}'s poor performance. Fans are growing restless, and pressure is mounting on the coaching staff." },
+        { headline: 'Frustrating Afternoon for {team}', article: 'A below-par display sees {team} leave empty-handed. The manager will be looking for a swift response in the next fixture.' }
+    ]
+};
+
+/**
+ * Show the newspaper modal with a headline chosen from the pool that best
+ * fits the current context (form, table position, board pressure), rather
+ * than a single fixed message per result type.
+ * @param {Object} matchResult
+ */
 function showNewsModal(matchResult) {
-    const { selectedLeague, selectedTeam, currentMatchday } = gameState;
+    const { selectedLeague, selectedTeam, currentMatchday, managerData, leagueTable } = gameState;
     const modal = document.getElementById('news-modal');
     const title = document.getElementById('news-title');
     const roundNumber = document.getElementById('news-round-number');
@@ -710,20 +802,35 @@ function showNewsModal(matchResult) {
 
     if (!modal || !title || !roundNumber || !playerHeadline || !playerArticle) return;
 
-    // Set newspaper content based on match result
     title.textContent = `${selectedLeague} Gazette`;
     roundNumber.textContent = currentMatchday - 1;
 
+    const position = getPlayerPosition();
+    const recentForm = getRecentForm(3);
+    const isLosingStreak = recentForm.length === 3 && recentForm.every(result => result === 'L');
+    const isTitleRace = position > 0 && position <= 2;
+    const isBoardPressure = managerData.jobSecurity < 30;
+    const isBottomOfTable = position >= leagueTable.length - 1;
+    const goalMargin = Math.abs(matchResult.homeGoals - matchResult.awayGoals);
+
+    let pool;
     if (matchResult.isWin) {
-        playerHeadline.textContent = `${selectedTeam} Triumph in Spectacular Fashion!`;
-        playerArticle.textContent = `Manager's tactical brilliance shines as ${selectedTeam} secure a convincing victory. The fans are ecstatic with this performance, and the board couldn't be happier with the results.`;
+        if (goalMargin >= 3) pool = NEWS_HEADLINES.landmarkWin;
+        else if (isTitleRace) pool = NEWS_HEADLINES.titleRaceWin;
+        else pool = NEWS_HEADLINES.genericWin;
     } else if (matchResult.isDraw) {
-        playerHeadline.textContent = `${selectedTeam} Hold Their Ground`;
-        playerArticle.textContent = `A hard-fought draw for ${selectedTeam} as they showed resilience and determination. While not the result fans hoped for, the team's fighting spirit was evident throughout the match.`;
+        pool = isBoardPressure ? NEWS_HEADLINES.boardPressureDraw : NEWS_HEADLINES.genericDraw;
     } else {
-        playerHeadline.textContent = `${selectedTeam} Suffer Disappointing Defeat`;
-        playerArticle.textContent = `Questions are being raised about the manager's tactics after ${selectedTeam}'s poor performance. Fans are growing restless, and pressure is mounting on the coaching staff.`;
+        if (isLosingStreak) pool = NEWS_HEADLINES.losingStreak;
+        else if (goalMargin >= 3) pool = NEWS_HEADLINES.landmarkLoss;
+        else if (isBoardPressure) pool = NEWS_HEADLINES.boardPressureLoss;
+        else if (isBottomOfTable) pool = NEWS_HEADLINES.relegationZoneLoss;
+        else pool = NEWS_HEADLINES.genericLoss;
     }
+
+    const chosen = pool[Math.floor(Math.random() * pool.length)];
+    playerHeadline.textContent = chosen.headline.replaceAll('{team}', selectedTeam);
+    playerArticle.textContent = chosen.article.replaceAll('{team}', selectedTeam);
 
     modal.style.display = 'flex';
 }

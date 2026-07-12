@@ -12,6 +12,7 @@ import { initializeLeagueTable, generateFixtures } from './match-manager.js';
 import { startPreSeason } from './preseason-manager.js';
 import { setBoardExpectation } from './board-manager.js';
 import { checkQualification, startChampionsCup } from './champions-cup-manager.js';
+import { recordSeasonResult } from './career-manager.js';
 
 /**
  * End the current season
@@ -21,6 +22,12 @@ export function endSeason() {
     const finalPosition = seasonRewards.position;
     const { currentSeason } = gameState;
     const qualified = checkQualification(finalPosition);
+
+    // Non-qualifying seasons are fully decided now; qualifying seasons wait
+    // for the Champions Cup to conclude before recording the combined result
+    if (!qualified) {
+        recordSeasonResult(finalPosition, null);
+    }
 
     let endSeasonMessage = `
         <h3>Season ${currentSeason} Complete!</h3>
@@ -41,7 +48,7 @@ export function endSeason() {
     showAnimatedPopup('Season Complete', endSeasonMessage, 'success', [
         {
             text: qualified ? 'Enter the Champions Cup!' : 'Continue to Next Season',
-            action: () => { qualified ? startChampionsCup() : startNewSeason(); closePopup(); }
+            action: () => { qualified ? startChampionsCup(finalPosition) : startNewSeason(); closePopup(); }
         },
         { text: 'View Financial Report', action: () => showFinancialReport() }
     ]);

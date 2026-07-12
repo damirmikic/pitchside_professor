@@ -101,6 +101,13 @@ export const GAME_CONSTANTS = {
     CHAMPIONS_CUP_REWARD_QUARTERFINALIST: { finances: 25000, reputation: 2 },
     CHAMPIONS_CUP_REWARD_PARTICIPANT: { finances: 10000, reputation: 1 },
 
+    // Achievements
+    TYCOON_ACHIEVEMENT_FINANCES_THRESHOLD: 5000000,
+    DYNASTY_ACHIEVEMENT_TROPHY_COUNT: 5,
+
+    // Random events: a small decision pops up periodically between matchdays
+    RANDOM_EVENT_INTERVAL_MATCHDAYS: 3,
+
     // Lifestyle Costs
     LIFESTYLE_ITEMS: {
         apartment: { cost: 2000, reputation: 5, name: 'City Apartment' },

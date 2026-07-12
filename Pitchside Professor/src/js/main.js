@@ -95,6 +95,10 @@ import {
     renderChampionsCupUI
 } from './managers/champions-cup-manager.js';
 
+import {
+    renderCareerSummary
+} from './managers/career-manager.js';
+
 /**
  * Initialize game state and systems for the current club (gameState.selectedLeague/selectedTeam).
  * Called on first load, and again after accepting a new job from the job board.
@@ -130,6 +134,7 @@ export function initializeGame() {
     setBoardExpectation();
     updateSidebarDisplays();
     renderChampionsCupUI();
+    renderCareerSummary();
 
     // Start in pre-season mode
     startPreSeason();
@@ -352,16 +357,6 @@ function initializeSidebar() {
     });
 }
 
-/**
- * Populate champions view (World tab)
- */
-function populateChampionsView() {
-    const championsContent = document.getElementById('champions-content');
-    if (championsContent) {
-        championsContent.innerHTML = '<p>No champions data available yet. Complete a season to see results!</p>';
-    }
-}
-
 // Make functions available globally for inline onclick handlers
 window.openTab = openTab;
 window.openWorldTab = openWorldTab;
@@ -371,7 +366,6 @@ window.scheduleFriendlyMatch = scheduleFriendlyMatch;
 window.playFriendlyMatch = playPreSeasonMatch; // Alias
 window.organizeTrainingCamp = organizeTrainingCamp;
 window.advancePreSeasonDay = advancePreSeasonDay;
-window.populateChampionsView = populateChampionsView;
 
 // Initialize on DOM content loaded
 document.addEventListener('DOMContentLoaded', () => {

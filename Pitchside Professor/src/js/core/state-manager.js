@@ -21,6 +21,11 @@ class GameState {
         this.fixtures = [];
         this.championsCup = this._freshChampionsCupState();
 
+        // Career-long records: persist across job changes (never reset by
+        // _resetClubContext() or startNewJob()), unlike everything club-specific
+        this.careerHistory = [];
+        this.achievements = [];
+
         this.managerData = {
             wealth: GAME_CONSTANTS.INITIAL_MANAGER_WEALTH,
             reputation: GAME_CONSTANTS.INITIAL_MANAGER_REPUTATION,
@@ -102,6 +107,7 @@ class GameState {
             qualified: false,
             active: false,
             won: false,
+            leaguePosition: null,
             bracket: [],
             currentRoundIndex: 0
         };
@@ -169,6 +175,8 @@ class GameState {
                 leagueTable: this.leagueTable,
                 fixtures: this.fixtures,
                 championsCup: { ...this.championsCup, bracket: this.championsCup.bracket.map(round => [...round]) },
+                careerHistory: [...this.careerHistory],
+                achievements: [...this.achievements],
                 managerData: { ...this.managerData },
                 clubData: { ...this.clubData },
                 fanData: { ...this.fanData },
@@ -209,6 +217,8 @@ class GameState {
             this.leagueTable = data.leagueTable || [];
             this.fixtures = data.fixtures || [];
             this.championsCup = data.championsCup || this._freshChampionsCupState();
+            this.careerHistory = data.careerHistory || [];
+            this.achievements = data.achievements || [];
 
             // Restore manager data
             if (data.managerData) {
