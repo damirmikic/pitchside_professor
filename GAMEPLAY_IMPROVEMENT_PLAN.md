@@ -233,23 +233,37 @@ exact expected numbers.
 
 ### Phase 3 — Depth and retention
 
-1. **Lightweight squad**: not full player management — a squad of ~5 named "key players"
-   (GK, DF, MF, FW, star) each with a rating that sums to club strength. Enables:
+**Status: items 2, 3, 4, and 5 are done.** Item 1 (squad/transfer market) is deferred
+as its own follow-up — it needs new player-level state, a transfer-market UI, and
+match-event integration for injuries, architecturally distinct from the
+content/history-focused items shipped together here. Verified live: random events
+firing on the exact 3-matchday cadence, all 8 newspaper headline-selection branches,
+and a rigged 4-season career correctly unlocking all four testable achievements with
+the trophy cabinet/history table rendering correctly.
+
+1. ⬜ **Lightweight squad** (deferred): not full player management — a squad of ~5 named
+   "key players" (GK, DF, MF, FW, star) each with a rating that sums to club strength.
+   Enables:
    - Transfer market: buy/sell key players with `transferBudget` (finally used).
    - Injuries/suspensions from match events (temporary strength loss, forces decisions).
    - Youth academy payoff: each season the academy level rolls a chance to produce a
      free young key player.
-2. **Season history & trophy cabinet**: persist final tables per season; populate the
-   currently-empty Champions/World tab (`main.js:331-336`) with past winners, career
-   honours, and the trophy images.
-3. **Dynamic newspaper**: the newspaper modal is a great asset — vary headlines using
-   league context (title race, derby, losing streak, board pressure) instead of the
-   current three static texts (`match-manager.js:528-537`).
-4. **Random events between matchdays**: one small decision every few matchdays
-   (sponsor scandal, star player interview, weather, fan protest) with two choices
-   trading money vs. happiness vs. security. Cheap content, big variety.
-5. **Achievements**: invincible season, worst-to-first, 5 trophies, tycoon (>$5M), etc.
-   Stored in localStorage alongside saves (save infrastructure already exists and is good).
+2. ✅ **Season history & trophy cabinet**: every completed season is recorded (league,
+   position, league champion, Champions Cup result). Rather than fabricating standings
+   for the 7 leagues never simulated week-to-week, "past winners" is the player's own
+   accurate season-by-season record — trophy counts, achievements, and full history —
+   replacing the dead `populateChampionsView()` placeholder in the World > Past
+   Champions tab.
+3. ✅ **Dynamic newspaper**: `showNewsModal` now picks from context-aware headline pools
+   (landmark win/loss margins, title race, losing streak, board pressure, relegation
+   zone) using league position and recent form, instead of one fixed message per
+   win/draw/loss.
+4. ✅ **Random events between matchdays**: every 3rd matchday, a two-choice decision
+   (sponsor deals, player unrest, weather, fan protests, etc.) trades club/personal
+   finances against fan happiness, reputation, job security, strength, or fitness.
+5. ✅ **Achievements**: Invincible (unbeaten season), Worst to First, Continental
+   Champion (win the Champions Cup), Dynasty (5 combined trophies), and Tycoon ($5M
+   finances) — unlocked automatically and persisted alongside save data.
 
 ### Phase 4 — Technical foundation (parallel track)
 
