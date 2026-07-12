@@ -196,13 +196,14 @@ matches its constant exactly.
 
 ### Phase 2 — Stakes and consequences
 
-**Status: items 1, 2, 3, and 5 are done.** Item 4 (Champions Cup) is deferred as its
-own follow-up — a genuinely separate feature (tournament bracket state, cross-league
-seeding, a new season-end flow) rather than something to bolt onto this batch.
-Verified live: board expectations computed/displayed for weak and strong teams,
+**Status: all 5 items are done.** Item 4 (Champions Cup) shipped as its own follow-up
+PR given its size (tournament bracket state, cross-league seeding, a new season-end
+flow). Verified live: board expectations computed/displayed for weak and strong teams,
 sacking → job board → accept-offer flow with correct career-vs-club state reset,
-reputation-gated offers, bankruptcy warning-then-forced-sale sequence, and lifestyle
-upkeep billing, all with exact expected numbers.
+reputation-gated offers, bankruptcy warning-then-forced-sale sequence, lifestyle
+upkeep billing, and the full Champions Cup bracket (qualification, rounds, elimination
+at multiple stages, a forced win, and the non-qualifying regression path) — all with
+exact expected numbers.
 
 1. ✅ **Board expectations & sacking**: at season/job start the board sets a target
    based on squad strength rank (with one position of slack). Job security drifts every
@@ -217,12 +218,15 @@ upkeep billing, all with exact expected numbers.
    higher reputation. The single weakest offer is always free of a requirement so a
    career can never fully dead-end. Accepting resets club-specific state (finances,
    strength, stadium, upgrades, fitness) while wealth/reputation/lifestyle persist.
-4. ⬜ **Promotion/relegation OR continental qualification** (deferred): with 8
-   self-contained leagues, the cheapest high-value option is qualification: finish top 2
-   → enter next season's **Champions Cup** (knockout bracket seeded with top teams from
-   all 8 leagues — the `champions cup throphy.png` asset already exists for this, and
-   index.html already has unwired `#champions-cup-view`/`#champions-cup-groups`
-   scaffolding from earlier planning). Extra fixtures, extra revenue, extra reputation.
+4. ✅ **Continental qualification**: finish top 2 → enter the **Champions Cup**, a
+   16-team single-elimination knockout drawn from all 8 leagues (the player's actual
+   top 2 plus 2 strength-weighted qualifiers from each other league, since those
+   leagues aren't simulated week-to-week). Draws go to a penalty shootout rather than
+   a second leg. Rewards scale from a small participation bonus up to $300,000 + 20
+   reputation for winning it all. Wired into the previously-unused
+   `#champions-cup-view`/`#champions-cup-groups` scaffolding. (Promotion/relegation
+   itself was not pursued — qualification was the cheaper, higher-value option as
+   originally noted.)
 5. ✅ **Recurring lifestyle costs**: lifestyle items now bill their monthly cost from
    personal wealth every 4 matchdays, instead of a one-time purchase with a cosmetic
    "$X/month" label that was never charged.
