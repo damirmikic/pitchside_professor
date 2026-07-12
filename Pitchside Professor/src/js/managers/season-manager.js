@@ -11,6 +11,7 @@ import { calculateSeasonEndRewards, generateSponsorshipOffers, calculateSeasonTi
 import { initializeLeagueTable, generateFixtures } from './match-manager.js';
 import { startPreSeason } from './preseason-manager.js';
 import { setBoardExpectation } from './board-manager.js';
+import { checkQualification, startChampionsCup } from './champions-cup-manager.js';
 
 /**
  * End the current season
@@ -19,6 +20,7 @@ export function endSeason() {
     const seasonRewards = calculateSeasonEndRewards();
     const finalPosition = seasonRewards.position;
     const { currentSeason } = gameState;
+    const qualified = checkQualification(finalPosition);
 
     let endSeasonMessage = `
         <h3>Season ${currentSeason} Complete!</h3>
@@ -32,8 +34,15 @@ export function endSeason() {
 
     endSeasonMessage += `<p><strong>Total Season Revenue:</strong> $${(seasonRewards.tvRevenue + seasonRewards.sponsorshipBonus).toLocaleString()}</p>`;
 
+    if (qualified) {
+        endSeasonMessage += '<p><strong>🏆 You qualified for the Champions Cup!</strong></p>';
+    }
+
     showAnimatedPopup('Season Complete', endSeasonMessage, 'success', [
-        { text: 'Continue to Next Season', action: () => { startNewSeason(); closePopup(); } },
+        {
+            text: qualified ? 'Enter the Champions Cup!' : 'Continue to Next Season',
+            action: () => { qualified ? startChampionsCup() : startNewSeason(); closePopup(); }
+        },
         { text: 'View Financial Report', action: () => showFinancialReport() }
     ]);
 
@@ -72,6 +81,9 @@ export function startNewSeason() {
 
     // Set the board's expectation for the new season based on squad strength rank
     setBoardExpectation();
+
+    // Champions Cup qualification/bracket is decided fresh each season
+    gameState.resetChampionsCup();
 
     // Calculate new season ticket sales
     calculateSeasonTicketSales();
