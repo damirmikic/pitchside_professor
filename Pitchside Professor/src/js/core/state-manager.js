@@ -19,6 +19,7 @@ class GameState {
 
         this.leagueTable = [];
         this.fixtures = [];
+        this.championsCup = this._freshChampionsCupState();
 
         this.managerData = {
             wealth: GAME_CONSTANTS.INITIAL_MANAGER_WEALTH,
@@ -89,6 +90,29 @@ class GameState {
             lastWagePayment: 0,
             consecutiveNegativeMatchdays: 0
         };
+
+        this.championsCup = this._freshChampionsCupState();
+    }
+
+    /**
+     * Fresh, empty Champions Cup state (no active tournament)
+     */
+    _freshChampionsCupState() {
+        return {
+            qualified: false,
+            active: false,
+            won: false,
+            bracket: [],
+            currentRoundIndex: 0
+        };
+    }
+
+    /**
+     * Reset the Champions Cup to a fresh, inactive state. Called at the start
+     * of every regular season, since qualification is decided fresh each time.
+     */
+    resetChampionsCup() {
+        this.championsCup = this._freshChampionsCupState();
     }
 
     /**
@@ -106,6 +130,7 @@ class GameState {
         this.isSacked = false;
         this.leagueTable = [];
         this.fixtures = [];
+        this.championsCup = this._freshChampionsCupState();
 
         this.managerData.jobSecurity = GAME_CONSTANTS.INITIAL_JOB_SECURITY;
         this.managerData.boardExpectation = null;
@@ -143,6 +168,7 @@ class GameState {
                 playerTeamData: this.playerTeamData,
                 leagueTable: this.leagueTable,
                 fixtures: this.fixtures,
+                championsCup: { ...this.championsCup, bracket: this.championsCup.bracket.map(round => [...round]) },
                 managerData: { ...this.managerData },
                 clubData: { ...this.clubData },
                 fanData: { ...this.fanData },
@@ -182,6 +208,7 @@ class GameState {
             this.playerTeamData = data.playerTeamData;
             this.leagueTable = data.leagueTable || [];
             this.fixtures = data.fixtures || [];
+            this.championsCup = data.championsCup || this._freshChampionsCupState();
 
             // Restore manager data
             if (data.managerData) {

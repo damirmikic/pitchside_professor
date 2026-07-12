@@ -90,6 +90,11 @@ import {
     setBoardExpectation
 } from './managers/board-manager.js';
 
+import {
+    playChampionsCupRound,
+    renderChampionsCupUI
+} from './managers/champions-cup-manager.js';
+
 /**
  * Initialize game state and systems for the current club (gameState.selectedLeague/selectedTeam).
  * Called on first load, and again after accepting a new job from the job board.
@@ -124,6 +129,7 @@ export function initializeGame() {
     initializeFinancialSystem();
     setBoardExpectation();
     updateSidebarDisplays();
+    renderChampionsCupUI();
 
     // Start in pre-season mode
     startPreSeason();
@@ -216,6 +222,10 @@ function setupEventListeners() {
 
     const hotspotStore = document.getElementById('hotspot-store');
     eventManager.addEventListener(hotspotStore, 'click', () => upgradeStore());
+
+    // Champions Cup
+    const playChampionsCupRoundBtn = document.getElementById('play-champions-cup-round-btn');
+    eventManager.addEventListener(playChampionsCupRoundBtn, 'click', () => playChampionsCupRound());
 
     // Modal close buttons
     const newsCloseBtn = document.getElementById('news-close-btn');
@@ -311,10 +321,13 @@ function initializeSidebar() {
             // Add active class to clicked link
             this.classList.add('active');
 
-            // Hide all sections
-            const sections = document.querySelectorAll('main > section');
-            sections.forEach(section => {
-                section.style.display = 'none';
+            // Hide every sidebar-navigable section (derived from the sidebar's own
+            // data-section targets, not DOM depth -- the sections sit two levels
+            // under <main>, at the same depth as the always-visible tab controls
+            // in #management-section, so a structural selector would hide those too)
+            sidebarLinks.forEach(l => {
+                const section = document.getElementById(l.getAttribute('data-section'));
+                if (section) section.style.display = 'none';
             });
 
             // Show selected section

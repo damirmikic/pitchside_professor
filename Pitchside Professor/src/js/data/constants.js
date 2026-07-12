@@ -92,6 +92,15 @@ export const GAME_CONSTANTS = {
     // Lifestyle upkeep: recurring personal cost charged periodically through the season
     LIFESTYLE_BILLING_INTERVAL_MATCHDAYS: 4,
 
+    // Champions Cup: cross-league knockout for top-2 league finishers
+    CHAMPIONS_CUP_QUALIFICATION_POSITION: 2, // finish this position or better to qualify
+    CHAMPIONS_CUP_STAGE_NAMES: ['Round of 16', 'Quarterfinal', 'Semifinal', 'Final'],
+    CHAMPIONS_CUP_REWARD_WINNER: { finances: 300000, reputation: 20 },
+    CHAMPIONS_CUP_REWARD_FINALIST: { finances: 150000, reputation: 10 },
+    CHAMPIONS_CUP_REWARD_SEMIFINALIST: { finances: 75000, reputation: 5 },
+    CHAMPIONS_CUP_REWARD_QUARTERFINALIST: { finances: 25000, reputation: 2 },
+    CHAMPIONS_CUP_REWARD_PARTICIPANT: { finances: 10000, reputation: 1 },
+
     // Lifestyle Costs
     LIFESTYLE_ITEMS: {
         apartment: { cost: 2000, reputation: 5, name: 'City Apartment' },
