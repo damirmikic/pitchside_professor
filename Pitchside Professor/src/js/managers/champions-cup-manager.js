@@ -9,6 +9,7 @@ import { GAME_CONSTANTS } from '../data/constants.js';
 import { showAnimatedPopup } from '../ui/notification-system.js';
 import { updateUI } from '../ui/ui-controller.js';
 import { rollWeightedDice } from '../utils/dice.js';
+import { recordSeasonResult } from './career-manager.js';
 
 const STAGE_NAMES = GAME_CONSTANTS.CHAMPIONS_CUP_STAGE_NAMES;
 
@@ -113,7 +114,7 @@ function makeTie(home, away) {
  * 2 from each of the other 7 leagues), draw a random Round of 16, and switch
  * the UI over to the Champions Cup view.
  */
-export function startChampionsCup() {
+export function startChampionsCup(leaguePosition) {
     const allQualifiers = shuffled([...getOwnLeagueQualifiers(), ...getOtherLeagueQualifiers()]);
 
     const firstRound = [];
@@ -125,6 +126,7 @@ export function startChampionsCup() {
         qualified: true,
         active: true,
         won: false,
+        leaguePosition,
         bracket: [firstRound],
         currentRoundIndex: 0
     };
@@ -226,24 +228,27 @@ function finishChampionsCup(stageIndex) {
     const { championsCup, managerData, clubData, selectedTeam } = gameState;
     championsCup.active = false;
 
-    let title, message, reward, type;
+    let title, message, reward, type, cupResultLabel;
 
     if (championsCup.won) {
         reward = GAME_CONSTANTS.CHAMPIONS_CUP_REWARD_WINNER;
         title = 'Champions Cup Winners!';
         message = `${selectedTeam} are Champions of the continent! An incredible achievement for the club.`;
         type = 'success';
+        cupResultLabel = 'Won';
     } else {
         const stageName = STAGE_NAMES[stageIndex] || STAGE_NAMES[0];
         reward = REWARD_BY_STAGE[stageName] || GAME_CONSTANTS.CHAMPIONS_CUP_REWARD_PARTICIPANT;
         title = 'Champions Cup Over';
         message = `${selectedTeam}'s Champions Cup run ends at the ${stageName} stage.`;
         type = 'info';
+        cupResultLabel = stageName;
     }
 
     clubData.finances += reward.finances;
     managerData.reputation += reward.reputation;
 
+    recordSeasonResult(championsCup.leaguePosition, cupResultLabel);
     renderChampionsCupUI();
     updateUI();
 
