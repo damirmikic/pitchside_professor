@@ -233,21 +233,21 @@ exact expected numbers.
 
 ### Phase 3 — Depth and retention
 
-**Status: items 2, 3, 4, and 5 are done.** Item 1 (squad/transfer market) is deferred
-as its own follow-up — it needs new player-level state, a transfer-market UI, and
-match-event integration for injuries, architecturally distinct from the
-content/history-focused items shipped together here. Verified live: random events
-firing on the exact 3-matchday cadence, all 8 newspaper headline-selection branches,
-and a rigged 4-season career correctly unlocking all four testable achievements with
-the trophy cabinet/history table rendering correctly.
+**Status: all 5 items are done.** Verified live: random events firing on the exact
+3-matchday cadence, all 8 newspaper headline-selection branches, a rigged 4-season
+career correctly unlocking all four testable achievements with the trophy cabinet/
+history table rendering correctly, and the squad/transfer system (buy/sell financial
+and strength deltas, forced injury/suspension/academy RNG paths, and a multi-matchday
+run with live status updates) with no console errors.
 
-1. ⬜ **Lightweight squad** (deferred): not full player management — a squad of ~5 named
-   "key players" (GK, DF, MF, FW, star) each with a rating that sums to club strength.
-   Enables:
-   - Transfer market: buy/sell key players with `transferBudget` (finally used).
-   - Injuries/suspensions from match events (temporary strength loss, forces decisions).
+1. ✅ **Lightweight squad**: not full player management — a squad of 5 named "key
+   players" (GK, DF, MF, FW, Star) each with a rating that sums to club strength.
+   - Transfer market: buy/sell key players with `transferBudget` (finally used), with
+     6 fresh listings generated each season and priced off rating.
+   - Injuries/suspensions: a small per-matchday chance rules a player out, temporarily
+     reducing effective match strength until they recover a few matchdays later.
    - Youth academy payoff: each season the academy level rolls a chance to produce a
-     free young key player.
+     free young key player who replaces the squad's weakest member.
 2. ✅ **Season history & trophy cabinet**: every completed season is recorded (league,
    position, league champion, Champions Cup result). Rather than fabricating standings
    for the 7 leagues never simulated week-to-week, "past winners" is the player's own

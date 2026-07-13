@@ -10,6 +10,7 @@ import { calculateMatchdayRevenue, processWeeklyWages, checkBankruptcy } from '.
 import { chargeLifestyleUpkeep } from './lifestyle-manager.js';
 import { applyBoardPressure, checkForSacking } from './board-manager.js';
 import { maybeShowRandomEvent } from './random-events-manager.js';
+import { getUnavailableRatingPenalty, tickInjuriesAndSuspensions, maybeInjureOrSuspendPlayer } from './squad-manager.js';
 import { updateUI, updateSidebarDisplays } from '../ui/ui-controller.js';
 import { rollWeightedDice } from '../utils/dice.js';
 
@@ -78,7 +79,8 @@ export function syncPlayerStrength() {
     if (playerTeam) {
         const fitnessMultiplier = GAME_CONSTANTS.FITNESS_STRENGTH_MULTIPLIER_BASE +
             GAME_CONSTANTS.FITNESS_STRENGTH_MULTIPLIER_RANGE * (clubData.fitness / 100);
-        playerTeam.strength = Math.round(clubData.strength * fitnessMultiplier);
+        const availableStrength = Math.max(0, clubData.strength - getUnavailableRatingPenalty());
+        playerTeam.strength = Math.round(availableStrength * fitnessMultiplier);
     }
 }
 
@@ -351,6 +353,10 @@ function playMatchdayAfterEvent(nextFixture) {
 
         // Squad fitness drains with every matchday played
         drainFitness();
+
+        // Recovering players return to availability, then a new injury/suspension may strike
+        tickInjuriesAndSuspensions();
+        maybeInjureOrSuspendPlayer();
 
         // Update displays
         updateLeagueTable();

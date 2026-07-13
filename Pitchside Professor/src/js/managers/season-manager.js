@@ -13,6 +13,7 @@ import { startPreSeason } from './preseason-manager.js';
 import { setBoardExpectation } from './board-manager.js';
 import { checkQualification, startChampionsCup } from './champions-cup-manager.js';
 import { recordSeasonResult } from './career-manager.js';
+import { rollAcademyPayoff, generateTransferListings } from './squad-manager.js';
 
 /**
  * End the current season
@@ -91,6 +92,11 @@ export function startNewSeason() {
 
     // Champions Cup qualification/bracket is decided fresh each season
     gameState.resetChampionsCup();
+
+    // The youth academy may have produced a free prospect, and the transfer
+    // market refreshes with a new set of listings
+    rollAcademyPayoff();
+    generateTransferListings();
 
     // Calculate new season ticket sales
     calculateSeasonTicketSales();

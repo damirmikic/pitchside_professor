@@ -97,6 +97,12 @@ class GameState {
         };
 
         this.championsCup = this._freshChampionsCupState();
+
+        // Squad and transfer listings are populated by squad-manager.js's
+        // initializeSquad()/generateTransferListings() once clubData.strength
+        // is finalized for the new club (this just clears the previous club's)
+        this.squad = [];
+        this.transferListings = [];
     }
 
     /**
@@ -177,6 +183,8 @@ class GameState {
                 championsCup: { ...this.championsCup, bracket: this.championsCup.bracket.map(round => [...round]) },
                 careerHistory: [...this.careerHistory],
                 achievements: [...this.achievements],
+                squad: this.squad.map(player => ({ ...player })),
+                transferListings: this.transferListings.map(listing => ({ ...listing })),
                 managerData: { ...this.managerData },
                 clubData: { ...this.clubData },
                 fanData: { ...this.fanData },
@@ -219,6 +227,8 @@ class GameState {
             this.championsCup = data.championsCup || this._freshChampionsCupState();
             this.careerHistory = data.careerHistory || [];
             this.achievements = data.achievements || [];
+            this.squad = data.squad || [];
+            this.transferListings = data.transferListings || [];
 
             // Restore manager data
             if (data.managerData) {

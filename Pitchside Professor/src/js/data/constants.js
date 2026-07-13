@@ -108,6 +108,29 @@ export const GAME_CONSTANTS = {
     // Random events: a small decision pops up periodically between matchdays
     RANDOM_EVENT_INTERVAL_MATCHDAYS: 3,
 
+    // Squad & transfer market: a lightweight 5-player key squad whose ratings
+    // sum to roughly clubData.strength
+    SQUAD_POSITIONS: ['GK', 'DF', 'MF', 'FW', 'Star'],
+    PLAYER_RATING_MIN: 5,
+    PLAYER_RATING_MAX: 25,
+    PLAYER_VALUE_PER_RATING: 4000,
+    PLAYER_SELL_VALUE_MULTIPLIER: 0.7,
+    TRANSFER_MARKET_LISTING_COUNT: 6,
+
+    // Injuries & suspensions: a chance each matchday that an available squad
+    // member is ruled out for a stretch of matches
+    INJURY_OR_SUSPENSION_CHANCE_PER_MATCH: 0.08,
+    INJURY_CHANCE_SHARE: 0.7, // vs. suspension, of events that fire
+    INJURY_DURATION_MATCHES_MIN: 2,
+    INJURY_DURATION_MATCHES_MAX: 5,
+    SUSPENSION_DURATION_MATCHES: 1,
+
+    // Youth academy payoff: each season, a chance (scaling with academy level)
+    // to produce a free prospect who replaces the weakest squad member
+    ACADEMY_PROSPECT_CHANCE_PER_LEVEL: 0.08,
+    ACADEMY_PROSPECT_RATING_MIN: 10,
+    ACADEMY_PROSPECT_RATING_MAX: 18,
+
     // Lifestyle Costs
     LIFESTYLE_ITEMS: {
         apartment: { cost: 2000, reputation: 5, name: 'City Apartment' },

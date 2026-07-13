@@ -99,6 +99,13 @@ import {
     renderCareerSummary
 } from './managers/career-manager.js';
 
+import {
+    initializeSquad,
+    generateTransferListings,
+    renderSquad,
+    renderTransferMarket
+} from './managers/squad-manager.js';
+
 /**
  * Initialize game state and systems for the current club (gameState.selectedLeague/selectedTeam).
  * Called on first load, and again after accepting a new job from the job board.
@@ -135,6 +142,8 @@ export function initializeGame() {
     updateSidebarDisplays();
     renderChampionsCupUI();
     renderCareerSummary();
+    initializeSquad();
+    generateTransferListings();
 
     // Start in pre-season mode
     startPreSeason();
@@ -347,6 +356,8 @@ function initializeSidebar() {
             updateSidebarDisplays();
             updateAllSectionUIs();
             updateFinancialUI();
+            renderSquad();
+            renderTransferMarket();
 
             // Close mobile sidebar after selection
             const sidebar = document.getElementById('sidebar');
