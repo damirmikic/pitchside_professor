@@ -8,6 +8,7 @@
 // players never lose a click to a popup stacked underneath another.
 let activePopup = null;
 const popupQueue = [];
+let popupIdCounter = 0;
 
 /**
  * Close a popup (or the currently active one, if called with no argument)
@@ -84,15 +85,20 @@ export function showAnimatedPopup(title, message, type = 'info', buttons = null)
 function renderPopup({ title, message, type, buttons }) {
     const popup = document.createElement('div');
     popup.className = 'animated-popup';
+    popup.setAttribute('role', 'dialog');
+    popup.setAttribute('aria-modal', 'true');
 
     let typeClass = '';
     if (type === 'success') typeClass = 'popup-success';
     else if (type === 'warning') typeClass = 'popup-warning';
     else if (type === 'error') typeClass = 'popup-error';
 
+    const titleId = `popup-title-${popupIdCounter++}`;
+    popup.setAttribute('aria-labelledby', titleId);
+
     popup.innerHTML = `
         <div class="popup-content ${typeClass}">
-            <h3>${title}</h3>
+            <h3 id="${titleId}">${title}</h3>
             <p>${message}</p>
             <div class="popup-buttons">
                 ${buttons.map((btn, i) => `<button type="button" data-btn-index="${i}">${btn.text}</button>`).join('')}
@@ -107,16 +113,45 @@ function renderPopup({ title, message, type, buttons }) {
     // Cancel/No for confirm popups, the sole OK for single-button ones.
     const dismissAction = buttons[buttons.length - 1].action;
 
+    // Trap Tab navigation inside the popup and restore focus to whatever
+    // triggered it on close, so keyboard/screen-reader users can't tab into
+    // background content while a popup is up.
+    const previouslyFocused = document.activeElement;
+
+    function getFocusable() {
+        return Array.from(popup.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'));
+    }
+
+    function trapFocus(e) {
+        if (e.key !== 'Tab') return;
+        const focusable = getFocusable();
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+        }
+    }
+
     function finish(action) {
         document.removeEventListener('keydown', onKeydown);
+        document.removeEventListener('keydown', trapFocus);
         action();
         closePopup(popup);
+        if (previouslyFocused && document.body.contains(previouslyFocused)) {
+            previouslyFocused.focus();
+        }
     }
 
     function onKeydown(e) {
         if (e.key === 'Escape') finish(dismissAction);
     }
     document.addEventListener('keydown', onKeydown);
+    document.addEventListener('keydown', trapFocus);
 
     buttons.forEach((btn, index) => {
         const buttonElement = popup.querySelector(`[data-btn-index="${index}"]`);
@@ -126,6 +161,9 @@ function renderPopup({ title, message, type, buttons }) {
     popup.addEventListener('click', (e) => {
         if (e.target === popup) finish(dismissAction);
     });
+
+    const focusable = getFocusable();
+    if (focusable.length > 0) focusable[0].focus();
 
     return popup;
 }
@@ -201,6 +239,8 @@ export function showNotification(titleOrMessage, messageOrType, maybeType) {
 
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
+    notification.setAttribute('role', type === 'error' ? 'alert' : 'status');
+    notification.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
 
     if (title) {
         const titleEl = document.createElement('strong');

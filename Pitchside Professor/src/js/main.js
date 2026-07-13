@@ -42,7 +42,9 @@ import {
     generateFixtures,
     updateFixturesDisplay,
     playMatchday,
-    isSeasonComplete
+    isSeasonComplete,
+    setInstantResults,
+    isInstantResultsEnabled
 } from './managers/match-manager.js';
 
 import {
@@ -250,6 +252,16 @@ function setupEventListeners() {
     // Main action button (Play Matchday)
     const mainActionBtn = document.getElementById('main-action-btn');
     eventManager.addEventListener(mainActionBtn, 'click', playMatchday);
+
+    // Instant Results toggle: initialize from the persisted preference, and
+    // let the player flip it on/off between matchdays
+    const instantResultsToggle = document.getElementById('instant-results-toggle');
+    if (instantResultsToggle) {
+        instantResultsToggle.checked = isInstantResultsEnabled();
+        eventManager.addEventListener(instantResultsToggle, 'change', function () {
+            setInstantResults(this.checked);
+        });
+    }
 
     // Ticket price sliders with validation
     const seasonTicketSlider = document.getElementById('season-ticket-price-slider');

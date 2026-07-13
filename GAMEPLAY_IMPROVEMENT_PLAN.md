@@ -279,16 +279,18 @@ run with live status updates) with no console errors.
 
 ### Phase 5 — Production hardening and polish
 
-**Status: items 1, 2, 3, 4, and 6 are done.** Identified during a
-production-readiness review of the shipped feature set (Phases 0–3). Verified live:
-autosave-then-reload restores an in-progress career exactly (season, matchday,
-wealth, squad); a different team picked via `intro.html` correctly skips the restore
-prompt; three popups fired back-to-back render strictly one at a time; Escape and
-backdrop-click resolve to the safe (Cancel/OK) button; the previously
-self-destroying "Sponsorship Signed!" popup now stays on screen; both CDN assets
-load with zero failed requests from a fully offline-capable local path; and a
-deliberately-thrown error triggers exactly one user-facing notice plus a successful
-autosave, without freezing the game.
+**Status: all 7 items are done.** Identified during a production-readiness review
+of the shipped feature set (Phases 0–3). Verified live: autosave-then-reload
+restores an in-progress career exactly (season, matchday, wealth, squad); a
+different team picked via `intro.html` correctly skips the restore prompt; three
+popups fired back-to-back render strictly one at a time; Escape and backdrop-click
+resolve to the safe (Cancel/OK) button; the previously self-destroying "Sponsorship
+Signed!" popup now stays on screen; both CDN assets load with zero failed requests
+from a fully offline-capable local path; a deliberately-thrown error triggers
+exactly one user-facing notice plus a successful autosave without freezing the
+game; Instant Results cuts a matchday from ~10s to ~1.3s; and popups now trap
+Tab/Shift+Tab, auto-focus their first button, restore focus to the trigger element
+on close, and expose correct `role`/`aria-live` to screen readers.
 
 1. ✅ **Autosave and continue-career prompt**: `initializeGame()` used to run
    unconditionally on every page load, silently discarding any in-progress career if
@@ -307,8 +309,6 @@ autosave, without freezing the game.
    from the DOM (bypassing the new queue's bookkeeping) were fixed in the process —
    one of which was silently destroying its own just-shown "Sponsorship Signed!"
    confirmation before the player ever saw it.
-1. ✅ **Autosave and continue-career prompt** (see above)
-2. ✅ **Popup queue** (see above)
 3. ✅ **Dead code removal**: deleted `indexed-db-manager.js` and
    `integrity-validator.js` (~900 lines, never imported anywhere), and trimmed five
    unused exports from `save-manager.js` (`createManualSave`, `getFormattedSaveSlots`,
@@ -323,15 +323,25 @@ autosave, without freezing the game.
    the exact fragility this item exists to fix). Also fixed an unrelated pre-existing
    bug found while verifying this: `intro.html` linked a nonexistent `styles.css`
    (404) instead of `src/css/styles.css`, so its custom styling never actually loaded.
-5. ⬜ **Matchday pacing options**: dice animation plus chained popups makes each
-   matchday ~8–10 seconds of unskippable waiting. An "instant result" toggle and/or a
-   "sim next N matchdays" action would help retention.
+5. ✅ **Matchday pacing options**: a persisted "⚡ Instant Results" toggle skips the
+   dice-roll animation and the manager-reading-newspaper sequence's artificial
+   delays, cutting a matchday from ~9.5s to ~1.3s end-to-end. Nothing is skipped
+   informationally — the same result popup and newspaper still appear, just without
+   the waiting. While wiring this up, also found and fixed a pre-existing CSS bug:
+   `.control-card`'s content is meant to be centered, but a full-width block-level
+   `<label>` (unlike its sibling `<select>`/`<button>`) rendered flush against the
+   left edge of an oversized container, landing underneath the fixed sidebar and
+   becoming unclickable there.
 6. ✅ **Global error handler**: `window.addEventListener('error'/'unhandledrejection')`
    now attempts an autosave and shows a single one-time notice ("Something Went
    Wrong... your progress has been saved") instead of silently freezing with no
    feedback. Guarded against flooding the popup queue if errors repeat.
-7. ⬜ **Accessibility**: popups aren't focus-trapped and the toast notifications have
-   no `aria-live`, so screen readers miss match results and squad news entirely.
+7. ✅ **Accessibility**: popups now render with `role="dialog"`/`aria-modal`/
+   `aria-labelledby`, trap Tab/Shift+Tab focus inside themselves, auto-focus their
+   first button on open, and restore focus to whatever triggered them on close.
+   Toast notifications now carry `role="status"`/`aria-live="polite"` (or
+   `role="alert"`/`aria-live="assertive"` for errors) so screen readers announce
+   match results and squad news without needing focus.
 
 ---
 

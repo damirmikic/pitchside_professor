@@ -14,6 +14,28 @@ import { getUnavailableRatingPenalty, tickInjuriesAndSuspensions, maybeInjureOrS
 import { updateUI, updateSidebarDisplays } from '../ui/ui-controller.js';
 import { rollWeightedDice } from '../utils/dice.js';
 
+// Instant Results: a persisted player preference (not part of any save slot)
+// that skips the dice-roll and newspaper-reading animation delays, so a
+// matchday resolves in roughly a second instead of ~9-10.
+let instantResultsEnabled = localStorage.getItem('pitchside_instant_results') === 'true';
+
+/**
+ * Toggle the Instant Results preference and persist it.
+ * @param {boolean} enabled
+ */
+export function setInstantResults(enabled) {
+    instantResultsEnabled = enabled;
+    localStorage.setItem('pitchside_instant_results', enabled ? 'true' : 'false');
+}
+
+/**
+ * Current Instant Results preference, for initializing the toggle's UI state.
+ * @returns {boolean}
+ */
+export function isInstantResultsEnabled() {
+    return instantResultsEnabled;
+}
+
 /**
  * Rare match events that can nudge a result, shown to the player for flavour
  */
@@ -377,7 +399,7 @@ function playMatchdayAfterEvent(nextFixture) {
             // Job security from the match result is applied synchronously above;
             // check whether it was enough to cost the manager their job
             checkForSacking();
-        }, 1500);
+        }, instantResultsEnabled ? 0 : 1500);
 
         gameState.currentMatchday++;
         updateSidebarDisplays();
@@ -393,7 +415,7 @@ function playMatchdayAfterEvent(nextFixture) {
                 import('./season-manager.js').then(module => {
                     module.endSeason();
                 });
-            }, 3000);
+            }, instantResultsEnabled ? 0 : 3000);
         }
     });
 }
@@ -403,6 +425,11 @@ function playMatchdayAfterEvent(nextFixture) {
  * @param {Function} callback Function to call after animation
  */
 function animateDiceRoll(callback) {
+    if (instantResultsEnabled) {
+        callback();
+        return;
+    }
+
     const dice1 = document.getElementById('dice1');
     const dice2 = document.getElementById('dice2');
 
@@ -660,7 +687,7 @@ export function showMatchResult(result, matchdayFinancials) {
                     awayGoals: awayGoals
                 });
             });
-        }, 2000);
+        }, instantResultsEnabled ? 0 : 2000);
     }
 
     // Update result display
@@ -675,6 +702,11 @@ export function showMatchResult(result, matchdayFinancials) {
  * @param {Function} callback Function to call after animation
  */
 function showManagerReadingNewspaper(callback) {
+    if (instantResultsEnabled) {
+        callback();
+        return;
+    }
+
     // Create manager reading newspaper overlay
     const readingOverlay = document.createElement('div');
     readingOverlay.className = 'manager-reading-overlay';
