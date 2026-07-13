@@ -277,6 +277,49 @@ run with live status updates) with no console errors.
    wages, events, saves, and UI updates; a simple ordered list of "turn phases" will
    keep Phases 1–3 from turning it back into spaghetti.
 
+### Phase 5 — Production hardening and polish
+
+**Status: items 1 and 2 are done.** Identified during a production-readiness review
+of the shipped feature set (Phases 0–3). Verified live: autosave-then-reload
+restores an in-progress career exactly (season, matchday, wealth, squad); a
+different team picked via `intro.html` correctly skips the restore prompt; three
+popups fired back-to-back render strictly one at a time; Escape and backdrop-click
+resolve to the safe (Cancel/OK) button; and the previously self-destroying
+"Sponsorship Signed!" popup now stays on screen.
+
+1. ✅ **Autosave and continue-career prompt**: `initializeGame()` used to run
+   unconditionally on every page load, silently discarding any in-progress career if
+   the tab was ever closed or refreshed — the existing `autoSave()`/
+   `loadFullGameState()` machinery was fully wired but never invoked at boot. Boot now
+   checks for an autosave matching the currently selected league/team and offers
+   "Continue Career" (restores state without regenerating fixtures/squad/offers) or
+   "Start New Career". Autosave points were also added after season transitions, job
+   changes, transfers, and Champions Cup rounds, not just after each matchday.
+2. ✅ **Popup queue**: `showAnimatedPopup` used to stack every call directly in the
+   DOM with no coordination, so a result popup, a random event, and a news
+   notification could all render on top of each other and swallow clicks. Popups now
+   queue and display one at a time, support Escape/backdrop dismissal (resolving to
+   the safe last button), and no longer serialize button callbacks into inline
+   `onclick` strings. Two call sites that manually swept `.animated-popup` elements
+   from the DOM (bypassing the new queue's bookkeeping) were fixed in the process —
+   one of which was silently destroying its own just-shown "Sponsorship Signed!"
+   confirmation before the player ever saw it.
+3. ⬜ **Dead code removal**: `indexed-db-manager.js` and `integrity-validator.js` are
+   never imported anywhere (~900 lines); `input-validator.js`/`input-sanitizer.js` are
+   each used for a single function; `save-manager.js`'s manual-save-slot functions
+   have no UI. Delete or wire in.
+4. ⬜ **Vendor the CDN dependencies**: Pico CSS and canvas-confetti load from
+   jsdelivr; a network hiccup breaks page load entirely. Both are small enough to
+   ship locally.
+5. ⬜ **Matchday pacing options**: dice animation plus chained popups makes each
+   matchday ~8–10 seconds of unskippable waiting. An "instant result" toggle and/or a
+   "sim next N matchdays" action would help retention.
+6. ⬜ **Global error handler**: no `window.onerror`/`unhandledrejection` handler
+   exists, so one uncaught exception mid-matchday silently freezes the game with no
+   recovery path or attempt to autosave first.
+7. ⬜ **Accessibility**: popups aren't focus-trapped and the toast notifications have
+   no `aria-live`, so screen readers miss match results and squad news entirely.
+
 ---
 
 ## Part 4 — Suggested Balancing Baseline (after wages are fixed)

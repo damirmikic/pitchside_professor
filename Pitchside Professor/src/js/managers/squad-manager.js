@@ -231,6 +231,7 @@ export function buyPlayer(listingId) {
             renderSquad();
             renderTransferMarket();
             updateUI();
+            gameState.autoSave();
         }
     );
 }
@@ -261,6 +262,7 @@ export function sellPlayer(playerId) {
             showSuccessPopup('Player Sold', `${player.name} has been sold for $${saleValue.toLocaleString()}.`);
             renderSquad();
             updateUI();
+            gameState.autoSave();
         }
     );
 }

@@ -5,7 +5,7 @@
 
 import { gameState } from '../core/state-manager.js';
 import { GAME_CONSTANTS } from '../data/constants.js';
-import { showAnimatedPopup, showWarningPopup, showSuccessPopup, closePopup } from '../ui/notification-system.js';
+import { showAnimatedPopup, showWarningPopup, showSuccessPopup } from '../ui/notification-system.js';
 import { updateUI } from '../ui/ui-controller.js';
 import { showNotification } from '../ui/notification-system.js';
 
@@ -198,10 +198,6 @@ export function acceptSponsorshipOffer(offerId) {
         updateUI();
         showSuccessPopup('Sponsorship Signed!',
             `You've signed with ${offer.name} for $${offer.basePayment.toLocaleString()} plus performance bonuses!`);
-
-        // Close any open popups
-        const popups = document.querySelectorAll('.animated-popup');
-        popups.forEach(popup => closePopup(popup));
     }
 }
 
