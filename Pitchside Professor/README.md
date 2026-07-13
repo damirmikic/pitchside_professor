@@ -28,21 +28,38 @@ A football/soccer management simulation game built with vanilla JavaScript.
 
 ### Running Locally
 
-1. Clone the repository
-2. Open `intro.html` in a modern web browser
-3. Select your league and team
-4. Start managing!
+```bash
+npm install
+npm run dev
+# Then navigate to the printed http://localhost:.../intro.html
+```
 
-**Note**: Due to ES6 modules, you may need to serve the files through a local server:
+This starts a [Vite](https://vitejs.dev/) dev server with hot module reloading.
+Select your league and team from `intro.html` and start managing!
+
+You can also serve the files with any static server (no build step required
+for local play, since the game is plain ES6 modules):
 
 ```bash
-# Using Python 3
 python -m http.server 8000
-
-# Using Node.js http-server
-npx http-server
-
+# or: npx http-server
 # Then navigate to http://localhost:8000/intro.html
+```
+
+### Building for Production
+
+```bash
+npm run build    # outputs a bundled, minified build to dist/
+npm run preview  # serve the dist/ build locally to sanity-check it
+```
+
+Deploy the contents of `dist/` to your static host of choice.
+
+### Running Tests
+
+```bash
+npm test         # run the Vitest suite once
+npm run test:watch  # re-run on file changes
 ```
 
 ### Browser Requirements
@@ -59,19 +76,26 @@ Pitchside Professor/
 ├── index.html              # Main game page
 ├── intro.html              # Team selection page
 ├── intro-video.html        # Introduction video
+├── vite.config.js          # Multi-page Vite build config
+├── package.json            # npm scripts and dev dependencies
 ├── REFACTORING.md          # Detailed refactoring documentation
+│
+├── public/                 # Static assets served/copied verbatim
+│   ├── assets/images/      # Game images and graphics
+│   └── vendor/             # Third-party scripts (canvas-confetti)
 │
 └── src/
     ├── css/
     │   └── styles.css      # Game styles
     │
-    ├── assets/images/      # Game images and graphics
+    ├── vendor/
+    │   └── pico.min.css    # Vendored Pico CSS (bundled by Vite)
     │
     └── js/
         ├── main.js         # Application entry point
         ├── core/           # Core game engine
         ├── data/           # Game data and constants
-        ├── managers/       # Game logic modules
+        ├── managers/       # Game logic modules (each with a *.test.js)
         ├── ui/             # UI controllers
         └── utils/          # Utility functions
 ```
@@ -127,6 +151,8 @@ gameState.clubData.finances -= 500;
 - **~7,200 lines** of modular JavaScript
 - **12 manager modules** covering matches, finance, clubs, fans, seasons,
   squad/transfers, the Champions Cup, career history, and random events
+- **28 Vitest unit tests** covering fixture generation, dice distribution,
+  finance math, and squad logic
 
 ## 🎯 Game Concepts
 
@@ -200,13 +226,14 @@ This is a personal project. Feel free to learn from the code structure and archi
 ## 🔮 Future Enhancements
 
 - TypeScript migration
-- Unit testing with Jest/Vitest
-- Build system (Webpack/Vite)
 - Deeper player management (full squads, individual player attributes/growth)
 - Advanced statistics
+- Matchday pacing beyond the Instant Results toggle (e.g. "sim next N matchdays")
+- Accessibility follow-ups beyond the current focus-trap/ARIA work
 
-See [GAMEPLAY_IMPROVEMENT_PLAN.md](../GAMEPLAY_IMPROVEMENT_PLAN.md) for the
-full, up-to-date roadmap and status of each phase.
+Every phase of the original improvement plan (Phases 0–5) is complete — see
+[GAMEPLAY_IMPROVEMENT_PLAN.md](../GAMEPLAY_IMPROVEMENT_PLAN.md) for the full
+history and what shipped in each one.
 
 ---
 
