@@ -267,15 +267,42 @@ run with live status updates) with no console errors.
 
 ### Phase 4 — Technical foundation (parallel track)
 
-1. Unit tests (Vitest) for the pure logic: fixture generation (mirroring!), match
-   engine distribution, finance math — the Phase 0 bugs above would all have been
-   caught by ~10 tests.
-2. A tiny build step (Vite) to bundle modules, hash assets, and enable dev server.
-3. Extract remaining inline `onclick` handlers from `index.html` so `window.*`
-   exports in `main.js:339-347` can be removed.
-4. Central event/turn pipeline: `playMatchday()` currently hand-sequences revenue,
-   wages, events, saves, and UI updates; a simple ordered list of "turn phases" will
-   keep Phases 1–3 from turning it back into spaghetti.
+**Status: all 4 items are done.** Verified live via Playwright against both the Vite
+dev server and a production `vite build` output.
+
+1. ✅ **Unit tests (Vitest)**: 28 tests covering fixture generation (mirroring),
+   the dice-roll distribution, finance math, and squad buy/sell/injury logic — this
+   is exactly the coverage that would have caught the Phase 0 bugs. Writing the
+   league-table test immediately caught a real bug: `updateLeagueTable()` didn't
+   null-check its DOM element (unlike its sibling functions), so calling it before
+   the league view had rendered threw and aborted the caller.
+2. ✅ **Vite build step**: `package.json`/`vite.config.js`, multi-page build for
+   `index.html`/`intro.html`/`intro-video.html`, `npm run dev`/`build`/`preview`.
+   Consolidated 27MB of duplicate image assets (9 files existed byte-identically at
+   both the repo root and `src/assets/images/`) into a single `public/assets/images/`
+   so Vite can serve and bundle them correctly; vendored JS/CSS moved similarly.
+   Fixed a broken CSS `url()` reference discovered in the process (`cover manager.png`
+   /`draw cover.png` resolved relative to `src/css/`, where neither file existed).
+3. ✅ **Extracted remaining inline `onclick` handlers** (mobile menu, press
+   conference, all tab-link buttons) into proper `addEventListener` wiring, removing
+   the `window.*` globals this required. Investigating the pre-season-related
+   handlers surfaced a bigger issue: an entire duplicate, never-updated Pre-Season UI
+   (`#preseason-view`, reachable from the sidebar) had been left behind after the
+   game consolidated onto a single tab-based Pre-Season flow — removed it, and the
+   now-dead functions it alone called. That investigation also revealed the *real*,
+   still-used "Play Friendly Match" button was itself broken (it only worked against
+   pre-scheduled matches that nothing reachable in the UI ever scheduled, so it
+   always failed with "No Match Today") — rewrote it to simulate an on-demand
+   friendly directly, fixing a live gameplay bug. Also fixed two related tab-switching
+   bugs: the World tab's sub-tabs weren't scoped to themselves (so switching between
+   them never hid the previous one), and entering the World tab after visiting
+   another tab left it blank.
+4. ✅ **Central turn pipeline**: `playMatchdayAfterEvent`'s single long function body
+   is now an ordered list of named turn phases (result display, other-fixture
+   simulation, finance, squad condition, tables/UI, board/lifestyle, result popup,
+   matchday advance, season progress) — identical sequence and behavior, but each
+   concern is now independently readable and explicitly positioned relative to the
+   others.
 
 ### Phase 5 — Production hardening and polish
 
