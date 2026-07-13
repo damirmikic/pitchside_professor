@@ -445,7 +445,7 @@ body:not(.game-started) #page-selection {
 
 /* ===== TEAM SELECTION ===== */
 #page-selection {
-    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('cover manager.png') no-repeat center center;
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/assets/images/cover manager.png') no-repeat center center;
     background-size: cover;
     min-height: 100vh;
 }
@@ -786,7 +786,7 @@ body:not(.game-started) #page-selection {
 }
 
 #news-modal .modal-content {
-    background-image: url('draw cover.png');
+    background-image: url('/assets/images/draw cover.png');
     background-size: cover;
     background-position: center;
     border: 5px solid #3d2b1f;

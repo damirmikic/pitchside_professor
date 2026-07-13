@@ -69,12 +69,10 @@ import {
 
 import {
     startPreSeason,
-    scheduleFriendlyMatch,
     playPreSeasonMatch,
     advancePreSeasonDay,
     finishPreSeason,
     runTrainingCamp,
-    organizeTrainingCamp,
     updatePreSeasonUI
 } from './managers/preseason-manager.js';
 
@@ -262,6 +260,24 @@ function setupEventListeners() {
             setInstantResults(this.checked);
         });
     }
+
+    // Mobile sidebar toggle
+    const mobileMenuToggleBtn = document.getElementById('mobile-menu-toggle-btn');
+    eventManager.addEventListener(mobileMenuToggleBtn, 'click', () => toggleMobileSidebar());
+
+    // Press conference
+    const pressConferenceBtn = document.getElementById('press-conference-btn');
+    eventManager.addEventListener(pressConferenceBtn, 'click', () => holdPressConference());
+
+    // Manager-section tabs (Manager/Club/Fans & Media/Pre-Season/World)
+    document.querySelectorAll('#management-section [data-tab]').forEach(button => {
+        eventManager.addEventListener(button, 'click', (e) => openTab(e, button.dataset.tab));
+    });
+
+    // World-section sub-tabs (Current Standings/Past Champions)
+    document.querySelectorAll('#world [data-world-tab]').forEach(button => {
+        eventManager.addEventListener(button, 'click', (e) => openWorldTab(e, button.dataset.worldTab));
+    });
 
     // Ticket price sliders with validation
     const seasonTicketSlider = document.getElementById('season-ticket-price-slider');
@@ -465,16 +481,6 @@ function initializeSidebar() {
         });
     });
 }
-
-// Make functions available globally for inline onclick handlers
-window.openTab = openTab;
-window.openWorldTab = openWorldTab;
-window.toggleMobileSidebar = toggleMobileSidebar;
-window.holdPressConference = holdPressConference;
-window.scheduleFriendlyMatch = scheduleFriendlyMatch;
-window.playFriendlyMatch = playPreSeasonMatch; // Alias
-window.organizeTrainingCamp = organizeTrainingCamp;
-window.advancePreSeasonDay = advancePreSeasonDay;
 
 // Initialize on DOM content loaded
 document.addEventListener('DOMContentLoaded', () => {

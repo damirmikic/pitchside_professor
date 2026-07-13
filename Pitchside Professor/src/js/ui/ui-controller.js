@@ -254,6 +254,17 @@ export function openTab(evt, tabName) {
     const targetTab = getCachedElement(tabName);
     if (targetTab) {
         targetTab.classList.add("active");
+
+        // The World tab nests its own sub-tabs (Current Standings / Past
+        // Champions); the blanket "remove active" above also strips whichever
+        // of those was showing, since it matches every .tab-content in the
+        // document regardless of nesting. Restore a default if none is active.
+        if (tabName === 'world' && !targetTab.querySelector('.tab-content.active')) {
+            const defaultSubTab = targetTab.querySelector('.tab-content');
+            const defaultSubLink = targetTab.querySelector('.tab-link');
+            if (defaultSubTab) defaultSubTab.classList.add('active');
+            if (defaultSubLink) defaultSubLink.classList.add('active');
+        }
     }
     if (evt && evt.currentTarget) {
         evt.currentTarget.classList.add("active");

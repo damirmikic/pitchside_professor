@@ -100,8 +100,8 @@ export function expandStadium() {
                     } else {
                         imageName = 'small stadium';
                     }
-                    stadiumImageWebp.srcset = `src/assets/images/${imageName}.webp`;
-                    stadiumImage.src = `src/assets/images/${imageName}.png`;
+                    stadiumImageWebp.srcset = `assets/images/${imageName}.webp`;
+                    stadiumImage.src = `assets/images/${imageName}.png`;
                 }
 
                 updateUI();

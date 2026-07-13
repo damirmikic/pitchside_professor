@@ -123,13 +123,15 @@ function drainFitness() {
  */
 export function updateLeagueTable() {
     const { leagueTable } = gameState;
-    const tbody = document.getElementById('table-body');
 
     // Sort by points, then goal difference
     leagueTable.sort((a, b) => {
         if (b.points !== a.points) return b.points - a.points;
         return (b.goalsFor - b.goalsAgainst) - (a.goalsFor - a.goalsAgainst);
     });
+
+    const tbody = document.getElementById('table-body');
+    if (!tbody) return;
 
     // Use DocumentFragment for batch DOM insertion (performance optimization)
     const fragment = document.createDocumentFragment();
@@ -345,79 +347,105 @@ function playMatchdayAfterEvent(nextFixture) {
     // Keep the player's league-table strength in sync with club upgrades before simulating
     syncPlayerStrength();
 
-    // Show dice animation first
     animateDiceRoll(() => {
-        // Simulate player match
         const result = simulateMatch(nextFixture, tactic);
+        runMatchdayTurn({ nextFixture, result });
+    });
+}
 
-        // Show dice results
-        updateDiceDisplay(result.homeGoals, result.awayGoals);
-        updateMatchEventTicker(result);
+/**
+ * Ordered turn phases run once the dice roll resolves for a matchday. Each
+ * phase reads/writes the shared turn context; keeping the sequence as a flat,
+ * ordered list -- rather than one long function body -- is what keeps this
+ * readable as more systems (squad, board, lifestyle, ...) get bolted onto a
+ * matchday. Order matters: later phases depend on earlier ones (e.g. the
+ * league table must reflect every fixture before board pressure reads it).
+ */
+const MATCHDAY_TURN_PHASES = [
+    showPlayerMatchResultPhase,
+    simulateOtherFixturesPhase,
+    financePhase,
+    squadConditionPhase,
+    tablesAndDisplaysPhase,
+    boardAndLifestylePhase,
+    matchResultPopupPhase,
+    advanceMatchdayPhase,
+    seasonProgressPhase
+];
 
-        // Simulate other matches in the same matchday
-        const currentMatchdayIndex = gameState.fixtures.findIndex(matchdayFixtures =>
-            matchdayFixtures.includes(nextFixture));
+function runMatchdayTurn(context) {
+    MATCHDAY_TURN_PHASES.forEach(phase => phase(context));
+}
 
-        gameState.fixtures[currentMatchdayIndex].forEach(fixture => {
-            if (!fixture.played) {
-                simulateMatch(fixture);
-            }
-        });
+function showPlayerMatchResultPhase({ result }) {
+    updateDiceDisplay(result.homeGoals, result.awayGoals);
+    updateMatchEventTicker(result);
+}
 
-        // Calculate matchday revenue
-        const matchdayFinancials = calculateMatchdayRevenue();
+function simulateOtherFixturesPhase({ nextFixture }) {
+    const currentMatchdayIndex = gameState.fixtures.findIndex(matchdayFixtures =>
+        matchdayFixtures.includes(nextFixture));
 
-        // Process weekly wages for this matchday
-        processWeeklyWages();
-
-        // Check for sustained financial distress
-        checkBankruptcy();
-
-        // Squad fitness drains with every matchday played
-        drainFitness();
-
-        // Recovering players return to availability, then a new injury/suspension may strike
-        tickInjuriesAndSuspensions();
-        maybeInjureOrSuspendPlayer();
-
-        // Update displays
-        updateLeagueTable();
-        updateFixturesDisplay();
-        updateUI();
-
-        // Board pressure: job security drifts based on league position vs. expectation
-        applyBoardPressure();
-
-        // Lifestyle upkeep is billed periodically, not every matchday
-        if (gameState.currentMatchday % GAME_CONSTANTS.LIFESTYLE_BILLING_INTERVAL_MATCHDAYS === 0) {
-            chargeLifestyleUpkeep();
-        }
-
-        // Show match result after a delay
-        setTimeout(() => {
-            showMatchResult(result, matchdayFinancials);
-            // Job security from the match result is applied synchronously above;
-            // check whether it was enough to cost the manager their job
-            checkForSacking();
-        }, instantResultsEnabled ? 0 : 1500);
-
-        gameState.currentMatchday++;
-        updateSidebarDisplays();
-
-        // Auto-save after matchday
-        gameState.autoSave();
-
-        // Check if season is complete
-        if (isSeasonComplete()) {
-            setTimeout(() => {
-                if (gameState.isSacked) return;
-                // Import and call endSeason
-                import('./season-manager.js').then(module => {
-                    module.endSeason();
-                });
-            }, instantResultsEnabled ? 0 : 3000);
+    gameState.fixtures[currentMatchdayIndex].forEach(fixture => {
+        if (!fixture.played) {
+            simulateMatch(fixture);
         }
     });
+}
+
+function financePhase(context) {
+    context.matchdayFinancials = calculateMatchdayRevenue();
+    processWeeklyWages();
+    checkBankruptcy();
+}
+
+function squadConditionPhase() {
+    drainFitness();
+    // Recovering players return to availability, then a new injury/suspension may strike
+    tickInjuriesAndSuspensions();
+    maybeInjureOrSuspendPlayer();
+}
+
+function tablesAndDisplaysPhase() {
+    updateLeagueTable();
+    updateFixturesDisplay();
+    updateUI();
+}
+
+function boardAndLifestylePhase() {
+    // Board pressure: job security drifts based on league position vs. expectation
+    applyBoardPressure();
+
+    // Lifestyle upkeep is billed periodically, not every matchday
+    if (gameState.currentMatchday % GAME_CONSTANTS.LIFESTYLE_BILLING_INTERVAL_MATCHDAYS === 0) {
+        chargeLifestyleUpkeep();
+    }
+}
+
+function matchResultPopupPhase({ result, matchdayFinancials }) {
+    setTimeout(() => {
+        showMatchResult(result, matchdayFinancials);
+        // Job security from the match result is applied synchronously above;
+        // check whether it was enough to cost the manager their job
+        checkForSacking();
+    }, instantResultsEnabled ? 0 : 1500);
+}
+
+function advanceMatchdayPhase() {
+    gameState.currentMatchday++;
+    updateSidebarDisplays();
+    gameState.autoSave();
+}
+
+function seasonProgressPhase() {
+    if (!isSeasonComplete()) return;
+
+    setTimeout(() => {
+        if (gameState.isSacked) return;
+        import('./season-manager.js').then(module => {
+            module.endSeason();
+        });
+    }, instantResultsEnabled ? 0 : 3000);
 }
 
 /**
@@ -713,7 +741,7 @@ function showManagerReadingNewspaper(callback) {
     readingOverlay.innerHTML = `
         <div class="manager-reading-content">
             <div class="manager-figure">
-                <img src="manager newspaper.png" alt="Manager reading newspaper" class="manager-newspaper-image">
+                <img src="assets/images/manager newspaper.png" alt="Manager reading newspaper" class="manager-newspaper-image">
             </div>
             <div class="reading-text">
                 <p>Manager reviewing the latest match reports...</p>

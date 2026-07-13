@@ -7,12 +7,12 @@
     <title>Pitchside Professor</title>
     <link rel="stylesheet" href="src/vendor/pico.min.css" />
     <link rel="stylesheet" href="src/css/styles.css" />
-    <script src="src/vendor/confetti.browser.min.js"></script>
+    <script src="vendor/confetti.browser.min.js"></script>
 </head>
 
 <body>
     <!-- MOBILE MENU TOGGLE -->
-    <button class="mobile-menu-toggle game-ui" onclick="toggleMobileSidebar()">☰</button>
+    <button class="mobile-menu-toggle game-ui" id="mobile-menu-toggle-btn">☰</button>
 
     <!-- SIDEBAR NAVIGATION -->
     <nav id="sidebar" class="game-ui">
@@ -31,7 +31,6 @@
             <li><a href="#" data-section="club-view">🏢 Club</a></li>
             <li><a href="#" data-section="fans-view">👥 Fans</a></li>
             <li><a href="#" data-section="media-view">📺 Media</a></li>
-            <li><a href="#" data-section="preseason-view">🏃 Pre-Season</a></li>
             <li><a href="#" data-section="world-view">🌍 World</a></li>
             <li><a href="#" data-section="champions-cup-view">🏆 Champions Cup</a></li>
             <li><a href="#" data-section="stadium-view">🏟️ Stadium</a></li>
@@ -321,38 +320,7 @@
                             <p>No recent press coverage...</p>
                         </div>
                         <h3>🎤 Press Conferences</h3>
-                        <button class="media-btn" onclick="holdPressConference()">Hold Press Conference</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- PRE-SEASON SECTION -->
-            <section id="preseason-view" style="display: none;">
-                <h2 style="text-align: center;">🏃 Pre-Season Management</h2>
-                <div class="preseason-info">
-                    <div class="preseason-stats">
-                        <div class="stat-card">
-                            <h3>📅 Days Remaining</h3>
-                            <p class="stat-value"><span id="preseason-days-stat">14</span></p>
-                        </div>
-                        <div class="stat-card">
-                            <h3>⚽ Friendlies Played</h3>
-                            <p class="stat-value"><span id="friendlies-played-stat">0</span>/3</p>
-                        </div>
-                        <div class="stat-card">
-                            <h3>💪 Team Fitness</h3>
-                            <p class="stat-value"><span id="team-fitness-stat">75</span>%</p>
-                        </div>
-                    </div>
-                    <div class="preseason-actions">
-                        <button class="preseason-btn" id="schedule-friendly-btn" onclick="scheduleFriendlyMatch()">Schedule Friendly Match</button>
-                        <button class="preseason-btn" id="play-friendly-btn" onclick="playFriendlyMatch()" style="display: none;">Play Friendly Match</button>
-                        <button class="preseason-btn" onclick="organizeTrainingCamp()">Training Camp</button>
-                        <button class="preseason-btn" onclick="advancePreSeasonDay()">Advance Day</button>
-                    </div>
-                    <div class="scheduled-matches" id="scheduled-matches-info">
-                        <h4>Scheduled Matches:</h4>
-                        <div id="scheduled-matches-list">No matches scheduled</div>
+                        <button class="media-btn" id="press-conference-btn">Hold Press Conference</button>
                     </div>
                 </div>
             </section>
@@ -391,12 +359,12 @@
 
             <section id="management-section" class="control-card">
                 <div class="tabs">
-                    <button class="tab-link active" onclick="openTab(event, 'manager')">Manager</button>
-                    <button class="tab-link" onclick="openTab(event, 'club')">Club</button>
-                    <button class="tab-link" onclick="openTab(event, 'fans')">Fans & Media</button>
-                    <button class="tab-link" onclick="openTab(event, 'preseason')" id="preseason-tab"
+                    <button class="tab-link active" data-tab="manager">Manager</button>
+                    <button class="tab-link" data-tab="club">Club</button>
+                    <button class="tab-link" data-tab="fans">Fans & Media</button>
+                    <button class="tab-link" data-tab="preseason" id="preseason-tab"
                         style="display: none;">Pre-Season</button>
-                    <button class="tab-link" onclick="openTab(event, 'world')">World</button>
+                    <button class="tab-link" data-tab="world">World</button>
                 </div>
                 <div id="manager" class="tab-content active">
                     <div class="management-grid">
@@ -441,8 +409,8 @@
                     <h5>Stadium Development</h5>
                     <div id="stadium-view">
                         <picture>
-                            <source id="stadium-image-webp" srcset="src/assets/images/small stadium.webp" type="image/webp">
-                            <img id="stadium-image" src="src/assets/images/small stadium.png" alt="Stadium" loading="lazy">
+                            <source id="stadium-image-webp" srcset="assets/images/small stadium.webp" type="image/webp">
+                            <img id="stadium-image" src="assets/images/small stadium.png" alt="Stadium" loading="lazy">
                         </picture>
                         <div id="hotspot-stand" class="hotspot">Expand</div>
                         <div id="hotspot-concessions" class="hotspot">Food</div>
@@ -511,23 +479,24 @@
                         </article>
                     </div>
                 </div>
-                <div id="world" class="tab-content"></div>
-                <div class="tabs">
-                    <button class="tab-link active" onclick="openWorldTab(event, 'current-standings')">Current
-                        Standings</button>
-                    <button class="tab-link" onclick="openWorldTab(event, 'past-champions')">Past
-                        Champions</button>
-                </div>
-                <div id="current-standings" class="tab-content active">
-                    <h4>World League Standings</h4>
-                    <p><small>View final standings at the end of the season.</small></p>
-                    <select id="world-league-select"></select>
-                    <div id="world-leagues-content"></div>
-                </div>
-                <div id="past-champions" class="tab-content">
-                    <h4>Career History</h4>
-                    <p><small>Your managerial career: trophies, achievements, and season-by-season results.</small></p>
-                    <div id="career-summary"></div>
+                <div id="world" class="tab-content">
+                    <div class="tabs">
+                        <button class="tab-link active" data-world-tab="current-standings">Current
+                            Standings</button>
+                        <button class="tab-link" data-world-tab="past-champions">Past
+                            Champions</button>
+                    </div>
+                    <div id="current-standings" class="tab-content active">
+                        <h4>World League Standings</h4>
+                        <p><small>View final standings at the end of the season.</small></p>
+                        <select id="world-league-select"></select>
+                        <div id="world-leagues-content"></div>
+                    </div>
+                    <div id="past-champions" class="tab-content">
+                        <h4>Career History</h4>
+                        <p><small>Your managerial career: trophies, achievements, and season-by-season results.</small></p>
+                        <div id="career-summary"></div>
+                    </div>
                 </div>
         </div>
         </section>

@@ -103,8 +103,8 @@ function showSackingOverlay(callback) {
     overlay.innerHTML = `
         <div class="sacking-content">
             <picture>
-                <source srcset="src/assets/images/lose cover.webp" type="image/webp">
-                <img src="src/assets/images/lose cover.png" alt="Sacked" class="sacking-cover-image">
+                <source srcset="assets/images/lose cover.webp" type="image/webp">
+                <img src="assets/images/lose cover.png" alt="Sacked" class="sacking-cover-image">
             </picture>
             <h2>You've Been Sacked!</h2>
             <p>The board at ${selectedTeam} has run out of patience and terminated your contract.</p>

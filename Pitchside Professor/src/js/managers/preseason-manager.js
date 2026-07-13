@@ -100,73 +100,24 @@ export function updatePreSeasonUI() {
 }
 
 /**
- * Schedule a friendly match
+ * Play a pre-season friendly against a random opponent from another league.
+ * Fitness/chemistry built up so far give a small performance edge.
  */
-export function scheduleFriendlyMatch() {
-    const { preSeasonData, selectedLeague, leagues } = gameState;
-    
+export function playPreSeasonMatch() {
+    const { preSeasonData, selectedTeam, selectedLeague, leagues } = gameState;
+
     if (preSeasonData.matchesPlayed >= preSeasonData.maxMatches) {
-        showNotification('Schedule Match', 'You have already played all available pre-season friendlies.', 'warning');
+        showNotification('No Matches Left', 'You have already played all available pre-season friendlies.', 'warning');
         return;
     }
-    
-    if (preSeasonData.scheduledMatches.length >= 3) {
-        showNotification('Schedule Match', 'You can only schedule 3 matches maximum.', 'warning');
-        return;
-    }
-    
-    // Schedule match for 2-5 days from now
-    const daysAhead = Math.floor(Math.random() * 4) + 2;
-    const matchDay = Math.max(1, preSeasonData.daysLeft - daysAhead);
-    
-    if (matchDay <= 0) {
-        showNotification('Schedule Match', 'Not enough time left to schedule more matches.', 'warning');
-        return;
-    }
-    
-    // Generate opponent from other leagues (using the shared league data, not a duplicated copy)
+
     const otherLeagueTeams = [];
     Object.keys(leagues).forEach(leagueName => {
         if (leagueName !== selectedLeague) {
             otherLeagueTeams.push(...leagues[leagueName]);
         }
     });
-    
-    const opponentTeam = otherLeagueTeams[Math.floor(Math.random() * otherLeagueTeams.length)];
-    
-    const scheduledMatch = {
-        day: matchDay,
-        opponent: opponentTeam.name,
-        opponentStrength: opponentTeam.baseStrength,
-        played: false
-    };
-    
-    preSeasonData.scheduledMatches.push(scheduledMatch);
-    preSeasonData.scheduledMatches.sort((a, b) => b.day - a.day);
-    
-    showNotification('Match Scheduled', `Friendly vs ${opponentTeam.name} scheduled for day ${matchDay}!`, 'success');
-    updateScheduledMatchesUI();
-    updateAllSectionUIs();
-}
-
-/**
- * Play a pre-season match
- */
-export function playPreSeasonMatch() {
-    const { preSeasonData, selectedTeam } = gameState;
-    
-    // Check if there's a match scheduled for today
-    const todayMatch = preSeasonData.scheduledMatches.find(match => 
-        match.day === preSeasonData.daysLeft && !match.played
-    );
-    
-    if (!todayMatch) {
-        showNotification('No Match Today', 'No friendly match scheduled for today.', 'warning');
-        return;
-    }
-
-    // Use the scheduled opponent
-    const opponent = todayMatch.opponent;
+    const opponent = otherLeagueTeams[Math.floor(Math.random() * otherLeagueTeams.length)];
 
     // Simulate match with current fitness/chemistry affecting performance
     const fitnessBonus = (preSeasonData.teamFitness - 75) / 100;
@@ -176,8 +127,6 @@ export function playPreSeasonMatch() {
     const playerScore = Math.max(0, Math.floor(Math.random() * 4 + totalBonus));
     const opponentScore = Math.floor(Math.random() * 3);
 
-    // Mark match as played
-    todayMatch.played = true;
     preSeasonData.matchesPlayed++;
     preSeasonData.teamFitness = Math.min(100, preSeasonData.teamFitness + 5);
     preSeasonData.teamChemistry = Math.min(100, preSeasonData.teamChemistry + 8);
@@ -186,57 +135,10 @@ export function playPreSeasonMatch() {
         playerScore === opponentScore ? 'drew' : 'lost';
 
     showAnimatedPopup('Pre-Season Result',
-        `${selectedTeam} ${playerScore} - ${opponentScore} ${opponent}\n\nYou ${result} the friendly match!\n\nTeam fitness and chemistry improved.\n\nDays remaining: ${preSeasonData.daysLeft}`,
+        `${selectedTeam} ${playerScore} - ${opponentScore} ${opponent.name}\n\nYou ${result} the friendly match!\n\nTeam fitness and chemistry improved.`,
         result === 'won' ? 'success' : 'info');
 
     updatePreSeasonUI();
-    updateScheduledMatchesUI();
-    updateAllSectionUIs();
-}
-
-/**
- * Update scheduled matches UI
- */
-export function updateScheduledMatchesUI() {
-    const { preSeasonData } = gameState;
-    const scheduledList = document.getElementById('scheduled-matches-list');
-    if (!scheduledList) return;
-    
-    if (preSeasonData.scheduledMatches.length === 0) {
-        scheduledList.innerHTML = 'No matches scheduled';
-        return;
-    }
-    
-    const upcomingMatches = preSeasonData.scheduledMatches
-        .filter(match => !match.played)
-        .sort((a, b) => b.day - a.day);
-    
-    if (upcomingMatches.length === 0) {
-        scheduledList.innerHTML = 'All scheduled matches completed';
-        return;
-    }
-    
-    scheduledList.innerHTML = upcomingMatches.map(match => 
-        `<div class="scheduled-match">
-            <strong>Day ${match.day}:</strong> vs ${match.opponent}
-            ${match.day === preSeasonData.daysLeft ? ' <span class="today-match">(TODAY!)</span>' : ''}
-        </div>`
-    ).join('');
-    
-    // Show/hide play button based on whether there's a match today
-    const playBtn = document.getElementById('play-friendly-btn');
-    const scheduleBtn = document.getElementById('schedule-friendly-btn');
-    const todayMatch = upcomingMatches.find(match => match.day === preSeasonData.daysLeft);
-    
-    if (playBtn && scheduleBtn) {
-        if (todayMatch) {
-            playBtn.style.display = 'inline-block';
-            scheduleBtn.style.display = 'none';
-        } else {
-            playBtn.style.display = 'none';
-            scheduleBtn.style.display = 'inline-block';
-        }
-    }
 }
 
 /**
@@ -268,15 +170,6 @@ export function advancePreSeasonDay() {
     if (preSeasonData.daysLeft <= 0) return;
 
     preSeasonData.daysLeft--;
-    
-    // Check if there's a match scheduled for the new day
-    const todayMatch = preSeasonData.scheduledMatches.find(match => 
-        match.day === preSeasonData.daysLeft && !match.played
-    );
-    
-    if (todayMatch) {
-        showNotification('Match Day!', `Today is your friendly match vs ${todayMatch.opponent}!`, 'info');
-    }
 
     // Sell some season tickets each day
     const dailySales = Math.floor(Math.random() * (fanData.maxSeasonTickets * 0.1)) + 1;
@@ -294,8 +187,6 @@ export function advancePreSeasonDay() {
     }
 
     updatePreSeasonUI();
-    updateScheduledMatchesUI();
-    updateAllSectionUIs();
 }
 
 /**
@@ -329,40 +220,3 @@ export function finishPreSeason() {
         'success');
 }
 
-/**
- * Organize a training camp (alternative implementation)
- */
-export function organizeTrainingCamp() {
-    const { preSeasonData, clubData } = gameState;
-    
-    if (preSeasonData.daysLeft < 3) {
-        showNotification('Training Camp', 'Not enough time left for a training camp!', 'warning');
-        return;
-    }
-    
-    // Cost money but improve fitness and chemistry
-    const cost = 5000;
-    if (clubData.finances < cost) {
-        showNotification('Training Camp', 'Not enough funds for a training camp!', 'error');
-        return;
-    }
-    
-    clubData.finances -= cost;
-    preSeasonData.teamFitness = Math.min(100, preSeasonData.teamFitness + 10);
-    preSeasonData.teamChemistry = Math.min(100, preSeasonData.teamChemistry + 15);
-    preSeasonData.daysLeft -= 3;
-    
-    showNotification('Training Camp', 'Successful training camp! Team fitness and chemistry improved.', 'success');
-    updateAllSectionUIs();
-}
-
-/**
- * Update all section UIs (placeholder for full UI update)
- */
-function updateAllSectionUIs() {
-    // This would call the main updateAllSectionUIs from ui-manager
-    if (typeof window.updateAllSectionUIs === 'function') {
-        window.updateAllSectionUIs();
-    }
-    updateUI();
-}
