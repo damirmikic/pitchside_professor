@@ -279,13 +279,16 @@ run with live status updates) with no console errors.
 
 ### Phase 5 — Production hardening and polish
 
-**Status: items 1 and 2 are done.** Identified during a production-readiness review
-of the shipped feature set (Phases 0–3). Verified live: autosave-then-reload
-restores an in-progress career exactly (season, matchday, wealth, squad); a
-different team picked via `intro.html` correctly skips the restore prompt; three
-popups fired back-to-back render strictly one at a time; Escape and backdrop-click
-resolve to the safe (Cancel/OK) button; and the previously self-destroying
-"Sponsorship Signed!" popup now stays on screen.
+**Status: items 1, 2, 3, 4, and 6 are done.** Identified during a
+production-readiness review of the shipped feature set (Phases 0–3). Verified live:
+autosave-then-reload restores an in-progress career exactly (season, matchday,
+wealth, squad); a different team picked via `intro.html` correctly skips the restore
+prompt; three popups fired back-to-back render strictly one at a time; Escape and
+backdrop-click resolve to the safe (Cancel/OK) button; the previously
+self-destroying "Sponsorship Signed!" popup now stays on screen; both CDN assets
+load with zero failed requests from a fully offline-capable local path; and a
+deliberately-thrown error triggers exactly one user-facing notice plus a successful
+autosave, without freezing the game.
 
 1. ✅ **Autosave and continue-career prompt**: `initializeGame()` used to run
    unconditionally on every page load, silently discarding any in-progress career if
@@ -304,19 +307,29 @@ resolve to the safe (Cancel/OK) button; and the previously self-destroying
    from the DOM (bypassing the new queue's bookkeeping) were fixed in the process —
    one of which was silently destroying its own just-shown "Sponsorship Signed!"
    confirmation before the player ever saw it.
-3. ⬜ **Dead code removal**: `indexed-db-manager.js` and `integrity-validator.js` are
-   never imported anywhere (~900 lines); `input-validator.js`/`input-sanitizer.js` are
-   each used for a single function; `save-manager.js`'s manual-save-slot functions
-   have no UI. Delete or wire in.
-4. ⬜ **Vendor the CDN dependencies**: Pico CSS and canvas-confetti load from
-   jsdelivr; a network hiccup breaks page load entirely. Both are small enough to
-   ship locally.
+1. ✅ **Autosave and continue-career prompt** (see above)
+2. ✅ **Popup queue** (see above)
+3. ✅ **Dead code removal**: deleted `indexed-db-manager.js` and
+   `integrity-validator.js` (~900 lines, never imported anywhere), and trimmed five
+   unused exports from `save-manager.js` (`createManualSave`, `getFormattedSaveSlots`,
+   `saveExists`, `getStorageInfo`, `validateSaveFile` — none had any UI or caller).
+   `input-validator.js`/`input-sanitizer.js` are left as-is: each has one function in
+   real use (`validateTicketPrice`, `sanitizeNumber`) alongside many unused ones, but
+   they're genuinely-used utility modules rather than pure dead weight, so trimming
+   them is lower-confidence and left for a future pass.
+4. ✅ **Vendor the CDN dependencies**: Pico CSS and canvas-confetti now ship from
+   `src/vendor/` instead of jsdelivr — fetched via the npm registry (jsdelivr itself
+   was unreachable from this environment, which was itself a live demonstration of
+   the exact fragility this item exists to fix). Also fixed an unrelated pre-existing
+   bug found while verifying this: `intro.html` linked a nonexistent `styles.css`
+   (404) instead of `src/css/styles.css`, so its custom styling never actually loaded.
 5. ⬜ **Matchday pacing options**: dice animation plus chained popups makes each
    matchday ~8–10 seconds of unskippable waiting. An "instant result" toggle and/or a
    "sim next N matchdays" action would help retention.
-6. ⬜ **Global error handler**: no `window.onerror`/`unhandledrejection` handler
-   exists, so one uncaught exception mid-matchday silently freezes the game with no
-   recovery path or attempt to autosave first.
+6. ✅ **Global error handler**: `window.addEventListener('error'/'unhandledrejection')`
+   now attempts an autosave and shows a single one-time notice ("Something Went
+   Wrong... your progress has been saved") instead of silently freezing with no
+   feedback. Guarded against flooding the popup queue if errors repeat.
 7. ⬜ **Accessibility**: popups aren't focus-trapped and the toast notifications have
    no `aria-live`, so screen readers miss match results and squad news entirely.
 

@@ -108,6 +108,38 @@ import {
 } from './managers/squad-manager.js';
 
 /**
+ * Global safety net: an uncaught exception or rejected promise mid-game would
+ * otherwise silently freeze the page with no feedback and no chance to save.
+ * Best-effort only -- this is not a substitute for fixing the underlying bug.
+ * Only the first error surfaces a notice per page load, to avoid flooding the
+ * popup queue if something is failing repeatedly.
+ */
+let hasShownErrorNotice = false;
+function handleUnexpectedError(error) {
+    console.error('Unexpected error:', error);
+
+    let saved = false;
+    try {
+        saved = gameState.autoSave();
+    } catch (saveError) {
+        console.error('Autosave during error handling also failed:', saveError);
+    }
+
+    if (hasShownErrorNotice) return;
+    hasShownErrorNotice = true;
+
+    showErrorPopup(
+        'Something Went Wrong',
+        saved
+            ? 'An unexpected error occurred. Your progress has been saved -- reloading the page is recommended.'
+            : 'An unexpected error occurred and your progress could not be saved. Reloading the page is recommended.'
+    );
+}
+
+window.addEventListener('error', (event) => handleUnexpectedError(event.error || event.message));
+window.addEventListener('unhandledrejection', (event) => handleUnexpectedError(event.reason));
+
+/**
  * Initialize game state and systems for the current club (gameState.selectedLeague/selectedTeam).
  * Called on first load, and again after accepting a new job from the job board.
  */
