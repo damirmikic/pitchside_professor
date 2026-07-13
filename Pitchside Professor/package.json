@@ -1,0 +1,18 @@
+{
+  "name": "pitchside-professor",
+  "version": "1.0.0",
+  "description": "A football/soccer management simulation game built with vanilla JavaScript.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "jsdom": "^29.0.0",
+    "vite": "^8.0.0",
+    "vitest": "^4.0.0"
+  }
+}
