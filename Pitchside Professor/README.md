@@ -7,11 +7,21 @@ A football/soccer management simulation game built with vanilla JavaScript.
 - **8 Unique Leagues**: Choose from diverse themed leagues
 - **Club Management**: Manage finances, stadium, and facilities
 - **Match Simulation**: Dice-based match outcomes with tactical choices
+- **Squad & Transfer Market**: Sign and sell key players, weather injuries and
+  suspensions, and benefit from youth academy graduates
+- **Champions Cup**: Qualify and compete in a continental knockout competition
 - **Fan Engagement**: Manage ticket prices and fan happiness
-- **Manager Career**: Build wealth, reputation, and job security
+- **Manager Career**: Build wealth, reputation, and job security, including
+  being sacked and rehired via the job board
+- **Season History & Achievements**: A trophy cabinet and unlockable
+  achievements (Invincible, Worst to First, Continental Champion, Dynasty,
+  Tycoon) tracked across your career
+- **Dynamic Newspaper & Random Events**: Context-aware headlines and
+  between-matchday decisions that affect finances, reputation, and squad
 - **Pre-Season System**: Prepare your team before the season starts
 - **Sponsorship Deals**: Negotiate and accept sponsorship offers
-- **Lifestyle Management**: Purchase homes, cars, and entertainment
+- **Lifestyle Management**: Purchase homes, cars, and entertainment with
+  recurring upkeep costs
 - **Season Progression**: Multi-season career mode
 
 ## 🚀 Getting Started
@@ -46,7 +56,7 @@ npx http-server
 
 ```
 Pitchside Professor/
-├── index.html              # Main game page (579 lines)
+├── index.html              # Main game page
 ├── intro.html              # Team selection page
 ├── intro-video.html        # Introduction video
 ├── REFACTORING.md          # Detailed refactoring documentation
@@ -72,7 +82,8 @@ The game uses a **modular ES6 architecture** with clear separation of concerns:
 
 - **Core**: State management and game engine
 - **Data**: Leagues, teams, and constants
-- **Managers**: Business logic (matches, finance, clubs, fans, seasons)
+- **Managers**: Business logic (matches, finance, clubs, fans, seasons, squad
+  and transfers, the Champions Cup, career history, random events)
 - **UI**: User interface controllers and notifications
 - **Utils**: Reusable utility functions
 
@@ -112,17 +123,26 @@ gameState.clubData.finances -= 500;
 
 ## 📊 Code Statistics
 
-- **15 JavaScript modules** (previously 1 monolithic file)
-- **~1,837 lines** of modular JavaScript (from 2,411 lines)
-- **76% reduction** in index.html size
-- **Average 122 lines** per module
+- **27 JavaScript modules** (previously 1 monolithic file)
+- **~7,200 lines** of modular JavaScript
+- **12 manager modules** covering matches, finance, clubs, fans, seasons,
+  squad/transfers, the Champions Cup, career history, and random events
 
 ## 🎯 Game Concepts
 
 ### Match Simulation
 - Weighted dice rolls (0-5 goals)
 - Tactical bonuses (Attacking/Defensive/Balanced)
-- Team strength modifiers
+- Team strength modifiers, including squad fitness and unavailable (injured/
+  suspended) key players
+
+### Squad & Transfer Market
+- A 5-player key squad (GK, DF, MF, FW, Star) whose ratings sum to club
+  strength
+- Buy and sell players on a transfer market that refreshes each season
+- Injuries and suspensions temporarily weaken the squad until players recover
+- Youth academy upgrades give a level-scaled chance of a free prospect each
+  season
 
 ### Financial System
 - Season ticket revenue
@@ -130,6 +150,7 @@ gameState.clubData.finances -= 500;
 - TV revenue based on position
 - Sponsorship deals
 - Weekly wage payments
+- Recurring lifestyle upkeep costs
 
 ### Club Development
 - Training facility upgrades
@@ -141,8 +162,9 @@ gameState.clubData.finances -= 500;
 ### Manager Progression
 - Personal wealth accumulation
 - Reputation building
-- Job security management
+- Job security management, including sacking and rehiring via the job board
 - Lifestyle purchases
+- Season-by-season history, trophy cabinet, and unlockable achievements
 
 ## 🐛 Troubleshooting
 
@@ -155,9 +177,9 @@ If you see module loading errors:
 
 ### Save Data
 
-Game uses localStorage to store:
-- Selected league
-- Selected team
+Game uses localStorage to store the full game state (club, manager, squad,
+transfer listings, league table, season history, and achievements), plus the
+selected league and team from `intro.html`.
 
 To reset: Clear browser localStorage or select a new team via intro.html
 
@@ -180,10 +202,11 @@ This is a personal project. Feel free to learn from the code structure and archi
 - TypeScript migration
 - Unit testing with Jest/Vitest
 - Build system (Webpack/Vite)
-- Transfer market system
-- Player management
-- International competitions
+- Deeper player management (full squads, individual player attributes/growth)
 - Advanced statistics
+
+See [GAMEPLAY_IMPROVEMENT_PLAN.md](../GAMEPLAY_IMPROVEMENT_PLAN.md) for the
+full, up-to-date roadmap and status of each phase.
 
 ---
 
