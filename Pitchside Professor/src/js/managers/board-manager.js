@@ -248,5 +248,11 @@ function acceptJobOffer(offer) {
     const jobBoardPage = document.getElementById('page-job-board');
     if (jobBoardPage) jobBoardPage.classList.remove('active');
 
-    import('../main.js').then(module => module.initializeGame());
+    import('../main.js').then(module => {
+        module.initializeGame();
+        // A new job is a major state change worth persisting immediately,
+        // rather than leaving the autosave pointed at the old club until
+        // the first matchday at the new one
+        gameState.autoSave();
+    });
 }

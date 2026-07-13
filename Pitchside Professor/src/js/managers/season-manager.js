@@ -31,7 +31,6 @@ export function endSeason() {
     }
 
     let endSeasonMessage = `
-        <h3>Season ${currentSeason} Complete!</h3>
         <p><strong>Final Position:</strong> ${finalPosition}${getOrdinalSuffix(finalPosition)}</p>
         <p><strong>TV Revenue:</strong> $${seasonRewards.tvRevenue.toLocaleString()}</p>
     `;
@@ -46,10 +45,10 @@ export function endSeason() {
         endSeasonMessage += '<p><strong>🏆 You qualified for the Champions Cup!</strong></p>';
     }
 
-    showAnimatedPopup('Season Complete', endSeasonMessage, 'success', [
+    showAnimatedPopup(`Season ${currentSeason} Complete`, endSeasonMessage, 'success', [
         {
             text: qualified ? 'Enter the Champions Cup!' : 'Continue to Next Season',
-            action: () => { qualified ? startChampionsCup(finalPosition) : startNewSeason(); closePopup(); }
+            action: () => { qualified ? startChampionsCup(finalPosition) : startNewSeason(); }
         },
         { text: 'View Financial Report', action: () => showFinancialReport() }
     ]);
@@ -117,6 +116,10 @@ export function startNewSeason() {
 
     // Enter pre-season preparation before the new league campaign begins
     startPreSeason();
+
+    // Season transitions are a major state change worth persisting immediately,
+    // not just waiting for the next matchday's autosave
+    gameState.autoSave();
 }
 
 /**
@@ -133,14 +136,3 @@ function getOrdinalSuffix(num) {
     return "th";
 }
 
-/**
- * Close popup helper
- */
-function closePopup() {
-    const popups = document.querySelectorAll('.animated-popup');
-    popups.forEach(popup => {
-        if (popup.parentNode) {
-            document.body.removeChild(popup);
-        }
-    });
-}

@@ -218,6 +218,7 @@ export function playChampionsCupRound() {
     championsCup.currentRoundIndex++;
 
     renderChampionsCupUI();
+    gameState.autoSave();
 }
 
 /**
@@ -251,6 +252,7 @@ function finishChampionsCup(stageIndex) {
     recordSeasonResult(championsCup.leaguePosition, cupResultLabel);
     renderChampionsCupUI();
     updateUI();
+    gameState.autoSave();
 
     showAnimatedPopup(
         title,

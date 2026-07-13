@@ -72,7 +72,8 @@ import {
     advancePreSeasonDay,
     finishPreSeason,
     runTrainingCamp,
-    organizeTrainingCamp
+    organizeTrainingCamp,
+    updatePreSeasonUI
 } from './managers/preseason-manager.js';
 
 import {
@@ -155,6 +156,59 @@ export function initializeGame() {
 function startGame() {
     initializeGame();
     setupEventListeners();
+}
+
+/**
+ * Resume a career from the autosave slot instead of starting fresh. Skips
+ * every fresh-state generation step in initializeGame() (league table,
+ * fixtures, squad, transfer listings, pre-season reset) since those would
+ * overwrite the state we just restored -- this only reveals the game page
+ * and re-renders every display from what deserializeState() populated.
+ */
+function resumeGame() {
+    const restored = gameState.loadFullGameState('autosave');
+    if (!restored) {
+        showErrorPopup('Restore Failed', 'Your saved career could not be loaded -- starting a new career instead.');
+        startGame();
+        return;
+    }
+
+    document.body.classList.add('game-started');
+    const gamePage = document.getElementById('page-game');
+    if (gamePage) {
+        gamePage.classList.add('active');
+        gamePage.style.display = '';
+        gamePage.style.visibility = '';
+    }
+
+    const managingTeamHeader = document.getElementById('managing-team-header');
+    if (managingTeamHeader) {
+        managingTeamHeader.textContent = `Managing: ${gameState.selectedTeam}`;
+    }
+
+    updateUI();
+    updateSidebarDisplays();
+    updateAllSectionUIs();
+    updateFinancialUI();
+    updateLeagueTable();
+    updateFixturesDisplay();
+    renderChampionsCupUI();
+    renderCareerSummary();
+    renderSquad();
+    renderTransferMarket();
+    updateLifestyleUI();
+
+    if (gameState.isPreSeason) {
+        const preseasonTab = document.getElementById('preseason-tab');
+        if (preseasonTab) preseasonTab.style.display = 'block';
+        openTab(null, 'preseason');
+        updatePreSeasonUI();
+    } else {
+        openTab(null, 'manager');
+    }
+
+    setupEventListeners();
+    showNotification('Career restored', 'success');
 }
 
 /**
@@ -398,6 +452,25 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeSidebar();
     initializeLifestyle();
 
-    // Start the game
-    startGame();
+    // If there's an autosave for the exact career currently selected, offer
+    // to continue it instead of silently starting over -- a fresh pick from
+    // intro.html (different team/league) always proceeds as a new career
+    const autosave = gameState.getSaveSlots().find(slot => slot.slotName === 'autosave');
+    const matchesCurrentCareer = autosave &&
+        autosave.league === gameState.selectedLeague &&
+        autosave.team === gameState.selectedTeam;
+
+    if (matchesCurrentCareer) {
+        showAnimatedPopup(
+            'Welcome Back',
+            `You have a saved career with ${autosave.team} (Season ${autosave.season}). Continue where you left off, or start a brand-new career? Starting new will erase this save.`,
+            'info',
+            [
+                { text: 'Continue Career', action: () => resumeGame() },
+                { text: 'Start New Career', action: () => { gameState.deleteSaveSlot('autosave'); startGame(); } }
+            ]
+        );
+    } else {
+        startGame();
+    }
 });
